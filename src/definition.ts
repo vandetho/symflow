@@ -1,56 +1,75 @@
-export type Place = {
-    metadata?: Record<string, any>;
-};
+import { LogicException } from './exceptions/logic-exception';
+import { Place, Transition } from './workflow-definition';
 
-export type Transition = {
-    from: string | string[];
-    to: string | string[];
-    metadata?: Record<string, any>;
-};
+export class Definition {
+    private readonly transitions: Record<string, Transition> = {};
+    private readonly places: Record<string, Place> = {};
+    private initialPlaces: string[] = [];
 
-export type Definition = {
-    metadata?: Record<string, any>;
-    initialState: string;
-    places: Record<string, Place>;
-    transitions: Record<string, Transition>;
-};
+    constructor(places: Record<string, Place>, transitions: Record<string, Transition>, initialPlaces?: string[]) {
+        Object.keys(places).forEach((place) => {
+            this.addPlace(place, places[place]);
+        });
 
-export class Workflow {
-    private metadata: Record<string, any>;
-    private places: Record<string, Place>;
-    private transitions: Record<string, Transition>;
-    public initialState: string;
+        Object.keys(transitions).forEach((transition) => {
+            this.addTransition(transition, transitions[transition]);
+        });
 
-    constructor(definition: Definition) {
-        this.metadata = definition.metadata || {};
-        this.places = definition.places;
-        this.transitions = definition.transitions;
-        this.initialState = definition.initialState;
+        this.setInitialPlaces(initialPlaces);
     }
 
-    getMetadata(): Record<string, any> {
-        return this.metadata;
+    getInitialPlaces(): string[] {
+        return this.initialPlaces;
     }
 
-    getPlaceMetadata(place: string): Record<string, any> {
-        return this.places[place]?.metadata || {};
+    setInitialPlaces(places: string[] | undefined): void {
+        if (!places) {
+            return;
+        }
+
+        places.forEach((place) => {
+            if (!this.places[place]) {
+                throw new LogicException(`Place "{place}" cannot be the initial place as it does not exist.`);
+            }
+        });
+
+        this.initialPlaces = places;
     }
 
-    getTransitionMetadata(transition: string): Record<string, any> {
-        return this.transitions[transition]?.metadata || {};
+    addPlace(name: string, place: Place): void {
+        if (!this.places.length) {
+            this.initialPlaces = [name];
+        }
+
+        this.places[name] = place;
     }
 
-    getAvailableTransitions(state: string): string[] {
-        return Object.keys(this.transitions).filter((transition) => this.transitions[transition].from.includes(state));
+    addTransition(name: string, transition: Transition): void {
+        const froms = Array.isArray(transition.from) ? transition.from : [transition.from];
+        const tos = Array.isArray(transition.to) ? transition.to : [transition.to];
+
+        froms.forEach((from) => {
+            if (!this.places[from]) {
+                this.addPlace(from, {});
+            }
+        });
+
+        tos.forEach((to) => {
+            if (!this.places[to]) {
+                this.addPlace(to, {});
+            }
+        });
+
+        this.transitions[name] = transition;
     }
 
-    canTransition(state: string, transition: string): boolean {
+    can(state: string, transition: string): boolean {
         return this.transitions[transition] && this.transitions[transition].from.includes(state);
     }
 
     apply(state: string, transition: string): string | string[] {
-        if (!this.canTransition(state, transition)) {
-            throw new Error(`Transition "${transition}" is not allowed from state "${state}".`);
+        if (!this.can(state, transition)) {
+            throw new Error(`Transition "{transition}" is not allowed from state "{state}".`);
         }
         return this.transitions[transition].to;
     }
