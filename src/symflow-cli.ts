@@ -17,7 +17,7 @@ program
 /**
  * Loads workflow data from a file or JSON string
  */
-function loadWorkflowData(inputFile?: string, jsonString?: string): WorkflowDefinition<any> {
+export function loadWorkflowData(inputFile?: string, jsonString?: string): WorkflowDefinition<any> {
     if (jsonString) {
         try {
             return JSON.parse(jsonString) as WorkflowDefinition<any>;
@@ -85,7 +85,9 @@ program
             } else {
                 console.error('Error: An unknown error occurred.');
             }
-            process.exit(1);
+            if (process.env.NODE_ENV !== 'test') {
+                process.exit(1); // Only exit if not in test mode
+            }
         }
     });
 
