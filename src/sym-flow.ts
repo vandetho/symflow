@@ -175,4 +175,49 @@ export class SymFlow<T extends Record<string, any>> {
 
         return false;
     }
+
+    /**
+     * Exports the workflow definition to Graphviz DOT format.
+     */
+    toGraphviz(): string {
+        let dot = `digraph Workflow {\n`;
+
+        for (const [state] of Object.entries(this.places)) {
+            dot += `    "${state}" [label="${state}"];\n`;
+        }
+
+        for (const [transition, { from, to }] of Object.entries(this.transitions)) {
+            const fromStates = Array.isArray(from) ? from : [from];
+            const toStates = Array.isArray(to) ? to : [to];
+
+            fromStates.forEach((fromState) => {
+                toStates.forEach((toState) => {
+                    dot += `    "${fromState}" -> "${toState}" [label="${transition}"];\n`;
+                });
+            });
+        }
+
+        dot += `}`;
+        return dot;
+    }
+
+    /**
+     * Exports the workflow definition to Mermaid flowchart format.
+     */
+    toMermaid(): string {
+        let mermaid = `graph TD;\n`;
+
+        for (const [transition, { from, to }] of Object.entries(this.transitions)) {
+            const fromStates = Array.isArray(from) ? from : [from];
+            const toStates = Array.isArray(to) ? to : [to];
+
+            fromStates.forEach((fromState) => {
+                toStates.forEach((toState) => {
+                    mermaid += `    ${fromState} -->|${transition}| ${toState};\n`;
+                });
+            });
+        }
+
+        return mermaid;
+    }
 }

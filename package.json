@@ -10,6 +10,9 @@
         "lint:fix": "eslint 'src/**/*.ts' --fix",
         "prepublishOnly": "npm run build && npm run lint"
     },
+    "bin": {
+        "symflow": "./dist/symflow-cli.js"
+    },
     "keywords": [
         "workflow",
         "state-machine",
@@ -26,7 +29,9 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.0",
         "@eslint/js": "^9.21.0",
+        "@types/fs-extra": "^11.0.4",
         "@types/jest": "^29.5.14",
+        "@types/js-yaml": "^4.0.9",
         "@typescript-eslint/eslint-plugin": "^8.26.0",
         "@typescript-eslint/parser": "^8.26.0",
         "eslint": "^9.21.0",
@@ -39,5 +44,10 @@
         "ts-node": "^10.9.2",
         "typescript": "^5.8.2",
         "typescript-eslint": "^8.26.0"
+    },
+    "dependencies": {
+        "commander": "^13.1.0",
+        "fs-extra": "^11.3.0",
+        "js-yaml": "^4.1.0"
     }
 }
