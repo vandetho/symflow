@@ -4,6 +4,7 @@ import { Workflow, StateMachine, WorkflowDefinition } from '../src';
 const orderWorkflowDefinition: WorkflowDefinition = {
     metadata: { description: 'Order processing workflow', version: '1.0' },
     initialState: 'draft',
+    stateField: 'status',
     places: {
         draft: { metadata: { label: 'Draft Order', description: 'Order is being configured.' } },
         pending: { metadata: { label: 'Pending', description: 'Waiting for confirmation.' } },

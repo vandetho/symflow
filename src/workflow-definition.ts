@@ -10,6 +10,7 @@ export type Transition = {
 
 export interface WorkflowDefinition {
     metadata?: Record<string, any>;
+    stateField: string;
     initialState: string;
     places: Record<string, Place>;
     transitions: Record<string, Transition>;
