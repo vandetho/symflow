@@ -2,14 +2,14 @@ import { Place, Transition, WorkflowDefinition } from './workflow-definition';
 
 export type EventHandler<T> = (entity: T, transition: string) => void;
 
-export class SymFlow<T extends Record<string, any>> {
-    private readonly metadata: Record<string, any>;
-    private places: Record<string, Place>;
-    private readonly transitions: Record<string, Transition>;
-    private readonly stateField: keyof T;
-    private readonly isStateMachine: boolean;
-    private readonly beforeTransitionHandlers: Record<string, EventHandler<T>[]>;
-    private readonly afterTransitionHandlers: Record<string, EventHandler<T>[]>;
+export abstract class SymFlow<T extends Record<string, any>> {
+    protected readonly metadata: Record<string, any>;
+    protected places: Record<string, Place>;
+    protected readonly transitions: Record<string, Transition>;
+    protected readonly stateField: keyof T;
+    protected readonly isStateMachine: boolean;
+    protected readonly beforeTransitionHandlers: Record<string, EventHandler<T>[]>;
+    protected readonly afterTransitionHandlers: Record<string, EventHandler<T>[]>;
 
     constructor(definition: WorkflowDefinition, stateField: keyof T = 'state', isStateMachine: boolean = true) {
         this.metadata = definition.metadata || {};
@@ -52,30 +52,17 @@ export class SymFlow<T extends Record<string, any>> {
         this.afterTransitionHandlers[transition].push(handler);
     }
 
-    apply(entity: T, transition: string): void {
-        if (!this.canTransition(entity, transition)) {
-            throw new Error(`Transition "${transition}" is not allowed from state "${entity[this.stateField]}".`);
-        }
-
+    protected applyTransition(entity: T, transition: string, newState: string | string[]): void {
         if (this.beforeTransitionHandlers[transition]) {
             this.beforeTransitionHandlers[transition].forEach((handler) => handler(entity, transition));
         }
 
-        if (this.isStateMachine) {
-            entity[this.stateField] = this.transitions[transition].to as T[keyof T];
-        } else {
-            if (Array.isArray(entity[this.stateField])) {
-                (entity[this.stateField] as unknown as string[]) = [
-                    ...(entity[this.stateField] as unknown as string[]),
-                    this.transitions[transition].to,
-                ];
-            } else {
-                (entity[this.stateField] as unknown as string) = this.transitions[transition].to;
-            }
-        }
+        entity[this.stateField] = newState as T[keyof T];
 
         if (this.afterTransitionHandlers[transition]) {
             this.afterTransitionHandlers[transition].forEach((handler) => handler(entity, transition));
         }
     }
+
+    abstract apply(entity: T, transition: string): void;
 }

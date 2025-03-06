@@ -1,42 +1,16 @@
-import { Place, WorkflowDefinition } from './workflow-definition';
+import { WorkflowDefinition } from './workflow-definition';
+import { SymFlow } from './sym-flow';
 
-export class StateMachine {
-    private metadata: Record<string, any>;
-    private places: Record<string, Place>;
-    private transitions: Record<string, any>;
-    private currentState: string;
-
-    constructor(definition: WorkflowDefinition) {
-        this.metadata = definition.metadata || {};
-        this.places = definition.places;
-        this.transitions = definition.transitions;
-        this.currentState = definition.initialState;
+export class StateMachine<T extends Record<string, any>> extends SymFlow<T> {
+    constructor(definition: WorkflowDefinition, stateField: keyof T = 'state') {
+        super(definition, stateField);
     }
 
-    getMetadata(): Record<string, any> {
-        return this.metadata;
-    }
-
-    getCurrentState(): string {
-        return this.currentState;
-    }
-
-    getAvailableTransitions(): string[] {
-        return Object.keys(this.transitions).filter((transition) =>
-            this.transitions[transition].from.includes(this.currentState),
-        );
-    }
-
-    canTransition(transition: string): boolean {
-        return this.transitions[transition] && this.transitions[transition].from.includes(this.currentState);
-    }
-
-    apply(transition: string): string {
-        if (!this.canTransition(transition)) {
-            throw new Error(`Transition "${transition}" is not allowed from state "${this.currentState}".`);
+    apply(entity: T, transition: string): void {
+        if (!this.canTransition(entity, transition)) {
+            throw new Error(`Transition "${transition}" is not allowed from state "${entity[this.stateField]}".`);
         }
 
-        this.currentState = this.transitions[transition].to;
-        return this.currentState;
+        entity[this.stateField] = this.transitions[transition].to as any;
     }
 }
