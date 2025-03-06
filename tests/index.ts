@@ -1,33 +1,57 @@
-import { Workflow, StateMachine, WorkflowDefinition } from '../src';
+// Define a workflow/state machine
+import { CompletedEvent, LeaveEvent, StateMachine, Workflow, WorkflowDefinition, WorkflowEventType } from '../src';
 
-// Define a workflow definition (for both Workflow and State Machine)
-const orderWorkflowDefinition: WorkflowDefinition = {
+export type OrderEntity = { id: number; state: string };
+
+const orderWorkflowDefinition: WorkflowDefinition<OrderEntity> = {
     metadata: { description: 'Order processing workflow', version: '1.0' },
     initialState: 'draft',
-    stateField: 'status',
+    stateField: 'state', // Defined in WorkflowDefinition
     places: {
-        draft: { metadata: { label: 'Draft Order', description: 'Order is being configured.' } },
-        pending: { metadata: { label: 'Pending', description: 'Waiting for confirmation.' } },
-        confirmed: { metadata: { label: 'Confirmed', description: 'Order confirmed by admin.' } },
+        draft: { metadata: { label: 'Draft Order' } },
+        pending: { metadata: { label: 'Pending Approval' } },
+        confirmed: { metadata: { label: 'Confirmed Order' } },
     },
     transitions: {
-        initiate: { from: ['draft'], to: 'pending', metadata: { label: 'Initiate Order' } },
-        confirm: { from: ['pending'], to: 'confirmed', metadata: { label: 'Confirm Order' } },
+        initiate: { from: ['draft'], to: 'pending' },
+        confirm: { from: ['pending'], to: 'confirmed' },
     },
 };
 
-const orderEntity = { id: 1, state: 'draft' };
-console.log('Initial Order State:', orderEntity.state);
-// Using Workflow (Multiple states supported)
-const workflow = new Workflow(orderWorkflowDefinition);
-console.log('Workflow Initial state:', workflowState);
+// Create two separate orders for testing
+const orderEntitySM: OrderEntity = { id: 1, state: 'draft' };
+const orderEntityWF: OrderEntity = { id: 2, state: 'draft' };
 
-workflowState = workflow.apply(workflowState, 'initiate');
-console.log('After initiate:', workflowState);
+// **State Machine Instance**
+const stateMachine = new StateMachine<OrderEntity>(orderWorkflowDefinition);
 
-// Using State Machine (Strict single-state transitions)
-const stateMachine = new StateMachine(orderWorkflowDefinition);
-console.log('StateMachine Initial state:', stateMachine.getCurrentState());
+// **Workflow Instance**
+const workflow = new Workflow<OrderEntity>(orderWorkflowDefinition);
 
-stateMachine.apply('initiate');
-console.log('After initiate:', stateMachine.getCurrentState());
+// Add event listeners for **State Machine**
+stateMachine.on(WorkflowEventType.LEAVE, (event: LeaveEvent<OrderEntity>) => {
+    console.log(`[StateMachine] Leaving state: ${event.fromState}, entering: ${event.toState}`);
+});
+
+stateMachine.on(WorkflowEventType.COMPLETED, (event: CompletedEvent<OrderEntity>) => {
+    console.log(`[StateMachine] Transition completed: ${event.transition}`);
+});
+
+// Add event listeners for **Workflow**
+workflow.on(WorkflowEventType.LEAVE, (event: LeaveEvent<OrderEntity>) => {
+    console.log(`[Workflow] Leaving state: ${event.fromState}, entering: ${event.toState}`);
+});
+
+workflow.on(WorkflowEventType.COMPLETED, (event: CompletedEvent<OrderEntity>) => {
+    console.log(`[Workflow] Transition completed: ${event.transition}`);
+});
+
+// Apply transitions in **State Machine**
+console.log('\n--- Testing StateMachine ---');
+stateMachine.apply(orderEntitySM, 'initiate');
+console.log(`[StateMachine] Final Order State: ${orderEntitySM.state}`);
+
+// Apply transitions in **Workflow**
+console.log('\n--- Testing Workflow ---');
+workflow.apply(orderEntityWF, 'initiate');
+console.log(`[Workflow] Final Order State: ${orderEntityWF.state}`);

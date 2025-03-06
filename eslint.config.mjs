@@ -29,13 +29,13 @@ export default [
 
         rules: {
             '@typescript-eslint/no-empty-interface': 'off',
+            '@typescript-eslint/no-empty-object-type': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-implicit-any': 'off',
             '@typescript-eslint/no-empty-function': 'off',
             '@typescript-eslint/no-shadow': 'off',
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/no-require-imports': 'off',
-
             '@typescript-eslint/no-unused-vars': [
                 'error',
                 {
@@ -48,7 +48,6 @@ export default [
                     ignoreRestSiblings: true,
                 },
             ],
-
             '@typescript-eslint/no-unused-expressions': [
                 'error',
                 {
@@ -57,9 +56,6 @@ export default [
                     allowTaggedTemplates: true,
                 },
             ],
-
-            'react/no-unstable-nested-components': 'off',
-            'react/prop-types': 'off',
             'no-bitwise': 'off',
             'no-div-regex': 'off',
             indent: 'off',

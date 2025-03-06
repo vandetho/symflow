@@ -8,9 +8,9 @@ export type Transition = {
     metadata?: Record<string, any>;
 };
 
-export interface WorkflowDefinition {
+export interface WorkflowDefinition<T extends Record<string, any>> {
     metadata?: Record<string, any>;
-    stateField?: string;
+    stateField?: keyof T;
     initialState: string;
     places: Record<string, Place>;
     transitions: Record<string, Transition>;
