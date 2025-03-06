@@ -1,8 +1,8 @@
-import { WorkflowDefinition } from './workflow-definition';
+import { Place, WorkflowDefinition } from './workflow-definition';
 
 export class StateMachine {
     private metadata: Record<string, any>;
-    private places: Record<string, any>;
+    private places: Record<string, Place>;
     private transitions: Record<string, any>;
     private currentState: string;
 

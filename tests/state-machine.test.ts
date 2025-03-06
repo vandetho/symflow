@@ -3,6 +3,7 @@ import { StateMachine, WorkflowDefinition } from '../src';
 describe('StateMachine', () => {
     const definition: WorkflowDefinition = {
         initialState: 'draft',
+        stateField: 'status',
         places: { draft: {}, pending: {} },
         transitions: {
             initiate: { from: ['draft'], to: 'pending' },

@@ -16,9 +16,10 @@ const orderWorkflowDefinition: WorkflowDefinition = {
     },
 };
 
+const orderEntity = { id: 1, state: 'draft' };
+console.log('Initial Order State:', orderEntity.state);
 // Using Workflow (Multiple states supported)
 const workflow = new Workflow(orderWorkflowDefinition);
-let workflowState = [workflow.initialState];
 console.log('Workflow Initial state:', workflowState);
 
 workflowState = workflow.apply(workflowState, 'initiate');
