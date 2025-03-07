@@ -1,11 +1,11 @@
 export enum WorkflowEventType {
-    ANNOUNCE = 'Announce',
-    GUARD = 'Guard',
-    LEAVE = 'Leave',
-    ENTER = 'Enter',
-    TRANSITION = 'Transition',
-    COMPLETED = 'Completed',
-    ENTERED = 'Entered',
+    ANNOUNCE = 'ANNOUNCE',
+    GUARD = 'GUARD',
+    LEAVE = 'LEAVE',
+    ENTER = 'ENTER',
+    TRANSITION = 'TRANSITION',
+    COMPLETED = 'COMPLETED',
+    ENTERED = 'ENTERED',
 }
 
 interface BaseEvent<T> {
