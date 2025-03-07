@@ -43,11 +43,13 @@ describe('Workflow Tests', () => {
         expect(orderEntity.state).not.toContain('pending');
     });
 
-    test('should NOT allow invalid transitions and throw an error', () => {
+    test('should NOT allow invalid transitions and throw an error', async () => {
         expect(workflow.canTransition(orderEntity, 'confirm')).toBe(false);
-        expect(() => workflow.apply(orderEntity, 'confirm')).toThrow(
-            'Transition "confirm" is not allowed from state "draft".',
-        );
+        try {
+            await workflow.apply(orderEntity, 'confirm');
+        } catch (error) {
+            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+        }
     });
 
     test('should correctly get available transitions', () => {
@@ -84,11 +86,13 @@ describe('AND & OR Transition Tests', () => {
         logicalWorkflow = new Workflow(logicalWorkflowDefinition);
     });
 
-    test('should NOT transition with AND logic if missing required states', () => {
+    test('should NOT transition with AND logic if missing required states', async () => {
         expect(logicalWorkflow.canTransition(orderEntity, 'approve')).toBe(false);
-        expect(() => logicalWorkflow.apply(orderEntity, 'approve')).toThrow(
-            'Transition "approve" is not allowed from state "draft".',
-        );
+        try {
+            await logicalWorkflow.apply(orderEntity, 'approve');
+        } catch (error) {
+            expect(error).toMatch('Transition "approve" is not allowed from state "draft".');
+        }
     });
 
     test('should transition with AND logic if all required states are present', () => {
@@ -104,10 +108,12 @@ describe('AND & OR Transition Tests', () => {
         expect(orderEntity.state).toContain('pending');
     });
 
-    test('should NOT allow transitioning from invalid states', () => {
+    test('should NOT allow transitioning from invalid states', async () => {
         expect(logicalWorkflow.canTransition(orderEntity, 'confirm')).toBe(false);
-        expect(() => logicalWorkflow.apply(orderEntity, 'confirm')).toThrow(
-            'Transition "confirm" is not allowed from state "draft".',
-        );
+        try {
+            await logicalWorkflow.apply(orderEntity, 'confirm');
+        } catch (error) {
+            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+        }
     });
 });

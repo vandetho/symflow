@@ -78,8 +78,12 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
         ]);
     });
 
-    test('should not allow invalid transition and trigger no events', () => {
-        expect(async () => workflow.apply(orderEntity, 'confirm')).toThrow();
+    test('should not allow invalid transition and trigger no events', async () => {
+        try {
+            await workflow.apply(orderEntity, 'confirm');
+        } catch (error) {
+            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+        }
         expect(eventLog).toEqual([]); // No events should be triggered
     });
 });

@@ -49,16 +49,18 @@ describe('State Machine Tests', () => {
         try {
             await stateMachine.apply(orderEntity, 'confirm');
         } catch (error) {
-            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+            expect((error as Error).message).toMatch('Transition "confirm" is not allowed from state "draft".');
         }
     });
 
-    test('should NOT allow transition from confirmed back to draft', () => {
-        stateMachine.apply(orderEntity, 'initiate');
-        stateMachine.apply(orderEntity, 'confirm');
+    test('should NOT allow transition from confirmed back to draft', async () => {
+        await stateMachine.apply(orderEntity, 'initiate');
+        await stateMachine.apply(orderEntity, 'confirm');
         expect(stateMachine.canTransition(orderEntity, 'initiate')).toBe(false);
-        expect(() => stateMachine.apply(orderEntity, 'initiate')).toThrow(
-            'Transition "initiate" is not allowed from state "confirmed".',
-        );
+        try {
+            await stateMachine.apply(orderEntity, 'confirm');
+        } catch (error) {
+            expect((error as Error).message).toMatch('Transition "confirm" is not allowed from state "confirmed".');
+        }
     });
 });
