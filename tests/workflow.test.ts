@@ -91,20 +91,20 @@ describe('AND & OR Transition Tests', () => {
         try {
             await logicalWorkflow.apply(orderEntity, 'approve');
         } catch (error) {
-            expect(error).toMatch('Transition "approve" is not allowed from state "draft".');
+            expect((error as Error).message).toMatch('Transition "approve" is not allowed from state "draft".');
         }
     });
 
-    test('should transition with AND logic if all required states are present', () => {
+    test('should transition with AND logic if all required states are present', async () => {
         orderEntity.state = ['draft', 'review'];
         expect(logicalWorkflow.canTransition(orderEntity, 'approve')).toBe(true);
-        logicalWorkflow.apply(orderEntity, 'approve');
+        await logicalWorkflow.apply(orderEntity, 'approve');
         expect(orderEntity.state).toContain('pending');
     });
 
-    test('should transition with OR logic if at least one required state is present', () => {
+    test('should transition with OR logic if at least one required state is present', async () => {
         expect(logicalWorkflow.canTransition(orderEntity, 'verify')).toBe(true);
-        logicalWorkflow.apply(orderEntity, 'verify');
+        await logicalWorkflow.apply(orderEntity, 'verify');
         expect(orderEntity.state).toContain('pending');
     });
 
@@ -113,7 +113,7 @@ describe('AND & OR Transition Tests', () => {
         try {
             await logicalWorkflow.apply(orderEntity, 'confirm');
         } catch (error) {
-            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+            expect((error as Error).message).toMatch('Transition "confirm" is not allowed from state "draft".');
         }
     });
 });

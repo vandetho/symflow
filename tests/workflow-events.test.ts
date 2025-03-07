@@ -39,10 +39,11 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
         });
     });
 
-    test('should trigger correct events when applying a transition', () => {
-        workflow.apply(orderEntity, 'initiate');
+    test('should trigger correct events when applying a transition', async () => {
+        await workflow.apply(orderEntity, 'initiate');
 
         expect(orderEntity.state).toEqual(['pending']);
+
         expect(eventLog).toEqual([
             'ANNOUNCE - Transition: initiate, From: ["draft"], To: ["pending"]',
             'GUARD - Transition: initiate, From: ["draft"], To: ["pending"]',
@@ -82,7 +83,7 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
         try {
             await workflow.apply(orderEntity, 'confirm');
         } catch (error) {
-            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+            expect((error as Error).message).toMatch('Transition "confirm" is not allowed from state "draft".');
         }
         expect(eventLog).toEqual([]); // No events should be triggered
     });
