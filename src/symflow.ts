@@ -114,7 +114,9 @@ export class Symflow<T extends Record<string, any>> {
         await this.triggerEvent(WorkflowEventType.GUARD, entity, transition, fromState, newState);
 
         if (!this.canTransition(entity, transition)) {
-            throw new Error(`Transition "${transition}" is not allowed from state "${fromState}".`);
+            return new Promise((_) => {
+                throw new Error(`Transition "${transition}" is not allowed from state "${fromState}".`);
+            });
         }
 
         await this.triggerEvent(WorkflowEventType.LEAVE, entity, transition, fromState, newState);
@@ -122,13 +124,13 @@ export class Symflow<T extends Record<string, any>> {
 
         if (this.isStateMachine) {
             // **State Machine:** Always set a **single active state**
-            (entity[this.stateField] as unknown as string) = Array.isArray(newState) ? newState[0] : newState;
+            entity[this.stateField] = (Array.isArray(newState) ? newState[0] : newState) as T[keyof T];
         } else {
             // **Workflow:** Remove previous states unless explicitly kept
             if (Array.isArray(newState)) {
-                (entity[this.stateField] as unknown as string[]) = newState;
+                entity[this.stateField] = newState as T[keyof T];
             } else {
-                (entity[this.stateField] as unknown as string[]) = [newState];
+                entity[this.stateField] = [newState] as T[keyof T];
             }
         }
 
@@ -142,7 +144,9 @@ export class Symflow<T extends Record<string, any>> {
      */
     async apply(entity: T, transition: string) {
         if (!this.canTransition(entity, transition)) {
-            throw new Error(`Transition "${transition}" is not allowed from state "${entity[this.stateField]}".`);
+            return new Promise((_, reject) => {
+                reject(new Error(`Transition "${transition}" is not allowed from state "${entity[this.stateField]}".`));
+            });
         }
 
         await this.applyTransition(entity, transition, this.transitions[transition].to);

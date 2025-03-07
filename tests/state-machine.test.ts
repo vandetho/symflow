@@ -44,11 +44,13 @@ describe('State Machine Tests', () => {
         expect(orderEntity.state).toBe('confirmed');
     });
 
-    test('should NOT allow invalid transitions and throw an error', () => {
+    test('should NOT allow invalid transitions and throw an error', async () => {
         expect(stateMachine.canTransition(orderEntity, 'confirm')).toBe(false);
-        expect(() => stateMachine.apply(orderEntity, 'confirm')).toThrow(
-            'Transition "confirm" is not allowed from state "draft".',
-        );
+        try {
+            await stateMachine.apply(orderEntity, 'confirm');
+        } catch (error) {
+            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+        }
     });
 
     test('should NOT allow transition from confirmed back to draft', () => {

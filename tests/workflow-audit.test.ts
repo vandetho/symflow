@@ -36,7 +36,7 @@ describe('Workflow Audit Trail with Unique Names', () => {
     });
 
     test('should persist events with workflow name in the audit trail', async () => {
-        workflow.apply(orderEntity, 'initiate');
+        await workflow.apply(orderEntity, 'initiate');
 
         const history = await AuditTrail.getAuditTrail(workflowDefinition.name, orderEntity.id);
         expect(history.length).toBe(7);
@@ -47,7 +47,7 @@ describe('Workflow Audit Trail with Unique Names', () => {
     });
 
     test('should clear the audit trail when enabled', async () => {
-        workflow.apply(orderEntity, 'initiate');
+        await workflow.apply(orderEntity, 'initiate');
         await AuditTrail.clearAuditTrail(workflowDefinition.name, orderEntity.id);
 
         const history = await AuditTrail.getAuditTrail(workflowDefinition.name, orderEntity.id);
