@@ -15,7 +15,7 @@ import {
  * SymFlow manages transitions between states.
  * Supports **state machines (single active state)** and **workflows (multiple active states)**.
  */
-export class SymFlow<T extends Record<string, any>> {
+export class Symflow<T extends Record<string, any>> {
     protected readonly metadata: Record<string, any>;
     protected readonly places: Record<string, Place>;
     protected readonly transitions: Record<string, Transition>;

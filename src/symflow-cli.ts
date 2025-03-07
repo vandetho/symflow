@@ -3,19 +3,13 @@
 import { Command } from 'commander';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { SymFlow } from './sym-flow';
+import { Symflow } from './symflow';
 import { WorkflowDefinition } from './workflow-definition';
 
 const program = new Command();
 
-// CLI Metadata
-program
-    .name('symflow-cli')
-    .version('1.0.0')
-    .description('CLI tool to export workflow definitions to Graphviz and Mermaid formats');
-
 /**
- * Loads workflow data from a file or JSON string
+ * Loads workflow data from a file or JSON string.
  */
 export function loadWorkflowData(inputFile?: string, jsonString?: string): WorkflowDefinition<any> {
     if (jsonString) {
@@ -62,11 +56,9 @@ program
         try {
             // Load workflow from either file or JSON string
             const workflowDefinition = loadWorkflowData(options.input, options.json);
-            const workflow = new SymFlow(workflowDefinition, false);
+            const workflow = new Symflow(workflowDefinition, false);
 
             let outputContent = '';
-
-            // Generate Output Based on Format
             if (options.format === 'dot') {
                 outputContent = workflow.toGraphviz();
             } else if (options.format === 'md') {
@@ -85,10 +77,11 @@ program
             } else {
                 console.error('Error: An unknown error occurred.');
             }
-            if (process.env.NODE_ENV !== 'test') {
-                process.exit(1); // Only exit if not in test mode
-            }
+            process.exit(1); // Only exit if not in test mode
         }
     });
 
-program.parse(process.argv);
+// **🔹 Prevent Auto Execution in Jest**
+if (require.main === module) {
+    program.parse(process.argv);
+}
