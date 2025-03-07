@@ -31,6 +31,66 @@ export function loadWorkflowData(inputFile?: string, jsonString?: string): Workf
     throw new Error('Either --input (file) or --json (JSON string) must be provided.');
 }
 
+/**
+ * Validates a workflow definition.
+ */
+export function validateWorkflow(workflowDefinition: WorkflowDefinition<any>): string[] {
+    const errors: string[] = [];
+    const states = new Set(Object.keys(workflowDefinition.places));
+
+    for (const [transition, { from, to }] of Object.entries(workflowDefinition.transitions)) {
+        const fromStates = Array.isArray(from) ? from : [from];
+        const toStates = Array.isArray(to) ? to : [to];
+
+        fromStates.forEach((state) => {
+            if (!states.has(state)) {
+                errors.push(`Transition "${transition}" refers to undefined state "${state}".`);
+            }
+        });
+
+        toStates.forEach((state) => {
+            if (!states.has(state)) {
+                errors.push(`Transition "${transition}" results in undefined state "${state}".`);
+            }
+        });
+    }
+
+    return errors;
+}
+
+// **Command: Validate Workflow**
+program
+    .command('validate')
+    .description('Validate a workflow for correctness')
+    .option('-i, --input <path>', 'Path to the workflow JSON/YAML file')
+    .option('-j, --json <json>', 'Workflow definition as a JSON string')
+    .action(async (options) => {
+        try {
+            if (!options.input && !options.json) {
+                console.error('Either --input (file) or --json (JSON string) is required.');
+            }
+
+            // Load workflow
+            const workflowDefinition = loadWorkflowData(options.input, options.json);
+            const errors = validateWorkflow(workflowDefinition);
+
+            if (errors.length > 0) {
+                console.error('❌ Workflow validation failed:');
+                errors.forEach((error) => console.error(`   - ${error}`));
+                process.exit(1);
+            } else {
+                console.log('✅ Workflow is valid.');
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(`Error: ${error.message}`);
+            } else {
+                console.error('Error: An unknown error occurred.');
+            }
+            process.exit(1);
+        }
+    });
+
 // **Command: Export Workflow**
 program
     .command('export')
