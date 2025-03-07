@@ -5,6 +5,7 @@ type Order = { id: number; state: string };
 describe('State Machine Tests', () => {
     const stateMachineDefinition: WorkflowDefinition<Order> = {
         name: 'Order Processing',
+        type: 'state_machine',
         metadata: { description: 'State Machine Test', version: '1.0' },
         stateField: 'state',
         initialState: 'draft',
@@ -31,16 +32,16 @@ describe('State Machine Tests', () => {
         expect(orderEntity.state).toBe('draft');
     });
 
-    test('should transition from draft to pending', () => {
+    test('should transition from draft to pending', async () => {
         expect(stateMachine.canTransition(orderEntity, 'initiate')).toBe(true);
-        stateMachine.apply(orderEntity, 'initiate');
+        await stateMachine.apply(orderEntity, 'initiate');
         expect(orderEntity.state).toBe('pending');
     });
 
-    test('should transition from pending to confirmed', () => {
-        stateMachine.apply(orderEntity, 'initiate');
+    test('should transition from pending to confirmed', async () => {
+        await stateMachine.apply(orderEntity, 'initiate');
         expect(stateMachine.canTransition(orderEntity, 'confirm')).toBe(true);
-        stateMachine.apply(orderEntity, 'confirm');
+        await stateMachine.apply(orderEntity, 'confirm');
         expect(orderEntity.state).toBe('confirmed');
     });
 

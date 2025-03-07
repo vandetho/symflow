@@ -8,6 +8,7 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
 
     const workflowDefinition: WorkflowDefinition<Order> = {
         name: 'Order Processing',
+        type: 'workflow',
         metadata: { description: 'Workflow Test', version: '1.0' },
         stateField: 'state',
         initialState: ['draft'], // ✅ Always an array
@@ -26,7 +27,7 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
 
     beforeEach(() => {
         orderEntity = { id: 1, state: ['draft'] }; // ✅ Always use an array
-        workflow = new Symflow(workflowDefinition, false);
+        workflow = new Symflow(workflowDefinition);
         eventLog = [];
 
         // Register event listeners

@@ -1,8 +1,3 @@
 import { Symflow } from './symflow';
-import { WorkflowDefinition } from './workflow-definition';
 
-export class Workflow<T extends Record<string, any>> extends Symflow<T> {
-    constructor(definition: WorkflowDefinition<T>) {
-        super(definition, false);
-    }
-}
+export class Workflow<T extends Record<string, any>> extends Symflow<T> {}

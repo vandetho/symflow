@@ -1,6 +1,7 @@
 import { WorkflowDefinition, State, Transition, Place } from './workflow-definition';
 import { WorkflowEventHandler, WorkflowEventType } from './event-workflow';
 import { AuditTrail } from './audit-trail';
+import { loadWorkflowDefinition } from './workflow-loader';
 
 /**
  * SymFlow manages transitions between states.
@@ -16,12 +17,13 @@ export class Symflow<T extends Record<string, any>> {
     protected readonly workflowName: string; // 🔹 Unique name for audit logging
     protected readonly eventHandlers: Partial<Record<WorkflowEventType, WorkflowEventHandler<T>[]>> = {};
 
-    constructor(definition: WorkflowDefinition<T>, isStateMachine = false) {
+    constructor(workflow: WorkflowDefinition<T> | string) {
+        const definition = typeof workflow === 'string' ? loadWorkflowDefinition<T>(workflow) : workflow;
         this.metadata = definition.metadata || {};
         this.places = definition.places;
         this.transitions = definition.transitions;
         this.stateField = definition.stateField;
-        this.isStateMachine = isStateMachine;
+        this.isStateMachine = definition.type === 'state_machine';
         this.workflowName = definition.name; // 🔹 Required field
         this.auditEnabled =
             typeof definition.auditTrail === 'boolean'

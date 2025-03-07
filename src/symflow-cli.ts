@@ -116,7 +116,7 @@ program
         try {
             // Load workflow from either file or JSON string
             const workflowDefinition = loadWorkflowData(options.input, options.json);
-            const workflow = new Symflow(workflowDefinition, false);
+            const workflow = new Symflow(workflowDefinition);
 
             let outputContent = '';
             if (options.format === 'dot') {

@@ -5,6 +5,7 @@ type Order = { id: number; state: string[] };
 describe('Workflow Tests', () => {
     const workflowDefinition: WorkflowDefinition<Order> = {
         name: 'Order Processing',
+        type: 'workflow',
         metadata: { description: 'Workflow Test', version: '1.0' },
         stateField: 'state',
         initialState: ['draft'],
@@ -28,17 +29,17 @@ describe('Workflow Tests', () => {
         workflow = new Workflow(workflowDefinition);
     });
 
-    test('should transition from draft to pending', () => {
+    test('should transition from draft to pending', async () => {
         expect(workflow.canTransition(orderEntity, 'initiate')).toBe(true);
-        workflow.apply(orderEntity, 'initiate');
+        await workflow.apply(orderEntity, 'initiate');
         expect(orderEntity.state).toContain('pending');
         expect(orderEntity.state).not.toContain('draft');
     });
 
-    test('should transition from pending to confirmed', () => {
-        workflow.apply(orderEntity, 'initiate');
+    test('should transition from pending to confirmed', async () => {
+        await workflow.apply(orderEntity, 'initiate');
         expect(workflow.canTransition(orderEntity, 'confirm')).toBe(true);
-        workflow.apply(orderEntity, 'confirm');
+        await workflow.apply(orderEntity, 'confirm');
         expect(orderEntity.state).toContain('confirmed');
         expect(orderEntity.state).not.toContain('pending');
     });
@@ -48,13 +49,13 @@ describe('Workflow Tests', () => {
         try {
             await workflow.apply(orderEntity, 'confirm');
         } catch (error) {
-            expect(error).toMatch('Transition "confirm" is not allowed from state "draft".');
+            expect((error as Error).message).toMatch('Transition "confirm" is not allowed from state "draft".');
         }
     });
 
-    test('should correctly get available transitions', () => {
+    test('should correctly get available transitions', async () => {
         expect(workflow.getAvailableTransitions(orderEntity)).toContain('initiate');
-        workflow.apply(orderEntity, 'initiate');
+        await workflow.apply(orderEntity, 'initiate');
         expect(workflow.getAvailableTransitions(orderEntity)).toContain('confirm');
     });
 });
@@ -62,6 +63,7 @@ describe('Workflow Tests', () => {
 describe('AND & OR Transition Tests', () => {
     const logicalWorkflowDefinition: WorkflowDefinition<Order> = {
         name: 'Logical Workflow',
+        type: 'workflow',
         metadata: { description: 'Logical Workflow Test', version: '1.0' },
         stateField: 'state',
         initialState: ['draft'],

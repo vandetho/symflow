@@ -10,6 +10,7 @@ describe('Workflow Audit Trail with Unique Names', () => {
 
     const workflowDefinition: WorkflowDefinition<{ id: number; state: string[] }> = {
         name: 'Order Processing', // 🔹 Workflow name
+        type: 'workflow',
         auditTrail: true, // 🔹 Enable audit trail
         metadata: { description: 'Order workflow', version: '1.0' },
         stateField: 'state',
