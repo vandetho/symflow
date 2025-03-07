@@ -1,0 +1,18 @@
+{
+  "name": "symflow-express-example",
+  "version": "1.0.0",
+  "description": "Example Express API using SymFlow",
+  "main": "server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "npx ts-node server.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/body-parser": "^1.19.2"
+  }
+}
