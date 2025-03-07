@@ -7,6 +7,7 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
     let orderEntity: Order;
 
     const workflowDefinition: WorkflowDefinition<Order> = {
+        name: 'Order Processing',
         metadata: { description: 'Workflow Test', version: '1.0' },
         stateField: 'state',
         initialState: ['draft'], // ✅ Always an array
@@ -53,9 +54,9 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
         ]);
     });
 
-    test('should trigger correct events for multiple transitions', () => {
-        workflow.apply(orderEntity, 'initiate');
-        workflow.apply(orderEntity, 'confirm');
+    test('should trigger correct events for multiple transitions', async () => {
+        await workflow.apply(orderEntity, 'initiate');
+        await workflow.apply(orderEntity, 'confirm');
 
         expect(orderEntity.state).toEqual(['confirmed']);
         expect(eventLog).toEqual([
@@ -78,7 +79,7 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
     });
 
     test('should not allow invalid transition and trigger no events', () => {
-        expect(() => workflow.apply(orderEntity, 'confirm')).toThrow();
+        expect(async () => workflow.apply(orderEntity, 'confirm')).toThrow();
         expect(eventLog).toEqual([]); // No events should be triggered
     });
 });

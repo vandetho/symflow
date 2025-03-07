@@ -5,6 +5,7 @@ describe('Workflow Export Tests', () => {
 
     beforeEach(() => {
         const workflowDefinition: WorkflowDefinition<{ id: number; state: string[] }> = {
+            name: 'Test Workflow',
             metadata: { description: 'Test Workflow', version: '1.0' },
             stateField: 'state',
             initialState: ['draft'],

@@ -5,3 +5,5 @@ node_modules
 dist
 
 tests/*.js
+
+audit-logs

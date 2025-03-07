@@ -11,6 +11,8 @@ export type Transition = {
 };
 
 export interface WorkflowDefinition<T extends Record<string, any>> {
+    name: string; // 🔹 Unique identifier for the workflow (Required)
+    auditTrail?: boolean | { enabled: boolean };
     metadata?: Record<string, any>;
     stateField: keyof T; // Ensure `stateField` is always required for better type safety
     initialState: State; // Can be a single state or multiple states

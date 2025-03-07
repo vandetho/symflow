@@ -3,6 +3,7 @@ import { validateWorkflow } from '../src/symflow-cli';
 describe('Workflow Validation Tests', () => {
     test('should pass validation for a correct workflow', () => {
         const workflowDefinition = {
+            name: 'Order Processing',
             stateField: 'state',
             initialState: ['draft'],
             places: { draft: {}, pending: {}, confirmed: {} },
@@ -14,6 +15,7 @@ describe('Workflow Validation Tests', () => {
 
     test('should detect invalid states in transitions', () => {
         const workflowDefinition = {
+            name: 'Order Processing',
             stateField: 'state',
             initialState: ['draft'],
             places: { draft: {}, confirmed: {} }, // Missing "pending"

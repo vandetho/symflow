@@ -4,6 +4,7 @@ type Order = { id: number; state: string };
 
 describe('State Machine Tests', () => {
     const stateMachineDefinition: WorkflowDefinition<Order> = {
+        name: 'Order Processing',
         metadata: { description: 'State Machine Test', version: '1.0' },
         stateField: 'state',
         initialState: 'draft',

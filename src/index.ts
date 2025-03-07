@@ -16,3 +16,4 @@ export {
 } from './event-workflow';
 export { LogicException } from './exceptions/logic-exception';
 export { TransitionException } from './exceptions/transition-exception';
+export { AuditTrail, AuditTrailEntry } from './audit-trail';

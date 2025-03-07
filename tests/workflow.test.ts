@@ -4,6 +4,7 @@ type Order = { id: number; state: string[] };
 
 describe('Workflow Tests', () => {
     const workflowDefinition: WorkflowDefinition<Order> = {
+        name: 'Order Processing',
         metadata: { description: 'Workflow Test', version: '1.0' },
         stateField: 'state',
         initialState: ['draft'],
@@ -58,6 +59,7 @@ describe('Workflow Tests', () => {
 
 describe('AND & OR Transition Tests', () => {
     const logicalWorkflowDefinition: WorkflowDefinition<Order> = {
+        name: 'Logical Workflow',
         metadata: { description: 'Logical Workflow Test', version: '1.0' },
         stateField: 'state',
         initialState: ['draft'],

@@ -1,15 +1,6 @@
 import { WorkflowDefinition, State, Transition, Place } from './workflow-definition';
-import {
-    AnnounceEvent,
-    CompletedEvent,
-    EnteredEvent,
-    EnterEvent,
-    GuardEvent,
-    LeaveEvent,
-    TransitionEvent,
-    WorkflowEventHandler,
-    WorkflowEventType,
-} from './event-workflow';
+import { WorkflowEventHandler, WorkflowEventType } from './event-workflow';
+import { AuditTrail } from './audit-trail';
 
 /**
  * SymFlow manages transitions between states.
@@ -21,6 +12,8 @@ export class Symflow<T extends Record<string, any>> {
     protected readonly transitions: Record<string, Transition>;
     protected readonly stateField: keyof T;
     protected readonly isStateMachine: boolean;
+    protected readonly auditEnabled: boolean; // 🔹 Per-workflow audit setting
+    protected readonly workflowName: string; // 🔹 Unique name for audit logging
     protected readonly eventHandlers: Partial<Record<WorkflowEventType, WorkflowEventHandler<T>[]>> = {};
 
     constructor(definition: WorkflowDefinition<T>, isStateMachine = false) {
@@ -29,6 +22,11 @@ export class Symflow<T extends Record<string, any>> {
         this.transitions = definition.transitions;
         this.stateField = definition.stateField;
         this.isStateMachine = isStateMachine;
+        this.workflowName = definition.name; // 🔹 Required field
+        this.auditEnabled =
+            typeof definition.auditTrail === 'boolean'
+                ? definition.auditTrail
+                : (definition.auditTrail?.enabled ?? false); // 🔹 Default: Disabled
     }
 
     /**
@@ -76,42 +74,51 @@ export class Symflow<T extends Record<string, any>> {
     }
 
     /**
-     * Triggers an event during a transition lifecycle.
+     * Triggers an event and logs it persistently.
      */
-    protected triggerEvent(
+    private async triggerEvent(
         eventType: WorkflowEventType,
         entity: T,
         transition: string,
-        fromState?: State,
-        toState?: State,
-    ) {
-        const eventPayload:
-            | AnnounceEvent<T>
-            | GuardEvent<T>
-            | LeaveEvent<T>
-            | EnterEvent<T>
-            | TransitionEvent<T>
-            | CompletedEvent<T>
-            | EnteredEvent<T> = { entity, transition, fromState, toState };
+        fromState?: string | string[],
+        toState?: string | string[],
+    ): Promise<void> {
+        const eventPayload = { entity, transition, fromState, toState };
 
-        this.eventHandlers[eventType]?.forEach((handler) => (handler as any)(eventPayload));
+        // Log event to persistent audit trail
+        await AuditTrail.logEvent(
+            this.workflowName, // 🔹 Use workflow name in logs
+            {
+                entityId: entity.id, // Ensure entity has an `id` field
+                eventType,
+                transition,
+                fromState,
+                toState,
+                timestamp: new Date().toISOString(),
+            },
+            this.auditEnabled,
+        );
+
+        if (this.eventHandlers[eventType]) {
+            this.eventHandlers[eventType]!.forEach((handler) => handler(eventPayload));
+        }
     }
 
     /**
      * Applies a transition to change the entity's state.
      */
-    protected applyTransition(entity: T, transition: string, newState: State) {
+    protected async applyTransition(entity: T, transition: string, newState: State): Promise<void> {
         const fromState = this.getCurrentStates(entity);
 
-        this.triggerEvent(WorkflowEventType.ANNOUNCE, entity, transition, fromState, newState);
-        this.triggerEvent(WorkflowEventType.GUARD, entity, transition, fromState, newState);
+        await this.triggerEvent(WorkflowEventType.ANNOUNCE, entity, transition, fromState, newState);
+        await this.triggerEvent(WorkflowEventType.GUARD, entity, transition, fromState, newState);
 
         if (!this.canTransition(entity, transition)) {
             throw new Error(`Transition "${transition}" is not allowed from state "${fromState}".`);
         }
 
-        this.triggerEvent(WorkflowEventType.LEAVE, entity, transition, fromState, newState);
-        this.triggerEvent(WorkflowEventType.ENTER, entity, transition, fromState, newState);
+        await this.triggerEvent(WorkflowEventType.LEAVE, entity, transition, fromState, newState);
+        await this.triggerEvent(WorkflowEventType.ENTER, entity, transition, fromState, newState);
 
         if (this.isStateMachine) {
             // **State Machine:** Always set a **single active state**
@@ -125,20 +132,20 @@ export class Symflow<T extends Record<string, any>> {
             }
         }
 
-        this.triggerEvent(WorkflowEventType.TRANSITION, entity, transition, fromState, newState);
-        this.triggerEvent(WorkflowEventType.COMPLETED, entity, transition, fromState, newState);
-        this.triggerEvent(WorkflowEventType.ENTERED, entity, transition, fromState, newState);
+        await this.triggerEvent(WorkflowEventType.TRANSITION, entity, transition, fromState, newState);
+        await this.triggerEvent(WorkflowEventType.COMPLETED, entity, transition, fromState, newState);
+        await this.triggerEvent(WorkflowEventType.ENTERED, entity, transition, fromState, newState);
     }
 
     /**
      * Applies a transition to the entity.
      */
-    apply(entity: T, transition: string): void {
+    async apply(entity: T, transition: string) {
         if (!this.canTransition(entity, transition)) {
             throw new Error(`Transition "${transition}" is not allowed from state "${entity[this.stateField]}".`);
         }
 
-        this.applyTransition(entity, transition, this.transitions[transition].to);
+        await this.applyTransition(entity, transition, this.transitions[transition].to);
     }
 
     /**
