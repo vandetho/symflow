@@ -24,11 +24,7 @@ describe('Symflow - Manual and Automatic Workflow Loading', () => {
 
     beforeEach(() => {
         orderEntity = { id: 1, state: ['draft'] };
-
-        // 🔹 Manual Workflow Loading (Old Method)
         manualWorkflow = new Symflow(manualWorkflowDefinition);
-
-        // 🔹 Automatic Workflow Loading (New Method)
         automaticWorkflow = new Symflow('order'); // Loads from `config/workflows/order.json` or `.yaml`
     });
 
