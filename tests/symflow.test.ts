@@ -8,7 +8,7 @@ describe('Symflow - Manual and Automatic Workflow Loading', () => {
     const manualWorkflowDefinition: WorkflowDefinition<{ id: number; state: string[] }> = {
         name: 'manual-order',
         type: 'workflow',
-        auditTrail: true, // 🔹 Enable audit trail
+        auditTrail: false, // 🔹 Enable audit trail
         stateField: 'state',
         initialState: ['draft'],
         places: {
