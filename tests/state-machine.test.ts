@@ -32,6 +32,13 @@ describe('State Machine Tests', () => {
         expect(orderEntity.state).toBe('draft');
     });
 
+    test('should retrieves all metadata', () => {
+        expect(stateMachine.getMetadata()).toEqual({
+            description: 'State Machine Test',
+            version: '1.0',
+        });
+    });
+
     test('should transition from draft to pending', async () => {
         expect(stateMachine.canTransition(orderEntity, 'initiate')).toBe(true);
         await stateMachine.apply(orderEntity, 'initiate');
