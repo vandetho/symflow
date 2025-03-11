@@ -1,0 +1,38 @@
+name: Publish to npm
+
+on:
+    release:
+        types: [created]
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                node-version: [20, 22, 24]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.php-versions }}
+                  registry-url: "https://registry.npmjs.org/"
+                  scope: "@vandetho"
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Run tests
+              run: npm test
+
+            - name: Build package
+              run: npx tsc
+
+            - name: Publish to npm
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

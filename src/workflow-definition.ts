@@ -10,9 +10,11 @@ export type Transition = {
     metadata?: Record<string, any>;
 };
 
+export type WorkflowType = 'state_machine' | 'workflow';
+
 export interface WorkflowDefinition<T extends Record<string, any>> {
     name: string; // 🔹 Unique identifier for the workflow (Required)
-    type: 'state_machine' | 'workflow'; // 🔹 Required field
+    type: WorkflowType; // 🔹 Required field
     auditTrail?: boolean | { enabled: boolean };
     metadata?: Record<string, any>;
     stateField: keyof T; // Ensure `stateField` is always required for better type safety
