@@ -39,6 +39,10 @@ describe('State Machine Tests', () => {
         });
     });
 
+    test('should retrieves getAvailableTransition', () => {
+        expect(stateMachine.getAvailableTransition('draft')).toEqual(['initiate']);
+    });
+
     test('should transition from draft to pending', async () => {
         expect(stateMachine.canTransition(orderEntity, 'initiate')).toBe(true);
         await stateMachine.apply(orderEntity, 'initiate');
