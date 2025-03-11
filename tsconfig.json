@@ -10,7 +10,7 @@
         "allowJs": false,
         "sourceMap": true,
         "outDir": "./dist",
-        "baseUrl": "./src",
+        "baseUrl": "./",
         "incremental": true,
         "skipLibCheck": true,
         "strictNullChecks": false,
@@ -29,6 +29,8 @@
     },
     "exclude": [
         "node_modules",
-        "dist"
+        "dist",
+        "tests",
+        "config"
     ]
 }
