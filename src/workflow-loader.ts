@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { WorkflowDefinition } from './workflow-definition';
+import { WORKFLOW_DIR } from './config';
 
 /**
  * Supported workflow definition file types.
@@ -12,7 +13,7 @@ const WORKFLOW_EXTENSIONS = ['.ts', '.json', '.yaml', '.yml'];
  * Loads a workflow definition from the `config/workflows` folder.
  */
 export function loadWorkflowDefinition<T extends Record<string, any>>(workflowName: string): WorkflowDefinition<T> {
-    const workflowFolder = path.join(__dirname, '../config/workflows');
+    const workflowFolder = path.join(WORKFLOW_DIR);
 
     for (const ext of WORKFLOW_EXTENSIONS) {
         const filePath = path.join(workflowFolder, `${workflowName}${ext}`);
@@ -44,4 +45,13 @@ function parseWorkflowDefinition<T extends Record<string, any>>(filePath: string
     }
 
     throw new Error(`Unsupported workflow definition format: ${ext}`);
+}
+
+/**
+ * Saves a workflow to the correct directory.
+ */
+export function saveWorkflow<T extends Record<string, any>>(name: string, definition: WorkflowDefinition<T>): void {
+    const filePath = path.join(WORKFLOW_DIR, `${name}.json`);
+    fs.ensureDirSync(WORKFLOW_DIR);
+    fs.writeJsonSync(filePath, definition, { spaces: 2 });
 }

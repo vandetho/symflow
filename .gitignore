@@ -7,3 +7,7 @@ dist
 tests/*.js
 
 audit-logs
+
+coverage
+
+config

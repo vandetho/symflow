@@ -20,12 +20,7 @@
         "noFallthroughCasesInSwitch": false,
         "moduleResolution": "node",
         "preserveConstEnums": true,
-        "noLib": false,
-        "paths": {
-            "@/symflow/*": [
-                "src/*"
-            ]
-        }
+        "noLib": false
     },
     "exclude": [
         "node_modules",
