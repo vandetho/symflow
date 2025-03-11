@@ -7,5 +7,3 @@ dist
 tests/*.js
 
 audit-logs
-
-config

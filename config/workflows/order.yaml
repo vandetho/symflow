@@ -1,0 +1,16 @@
+name: "order"
+auditTrail:
+    enabled: true
+stateField: "state"
+initialState: ["draft"]
+places:
+    draft: {}
+    pending: {}
+    confirmed: {}
+transitions:
+    initiate:
+        from: ["draft"]
+        to: ["pending"]
+    confirm:
+        from: ["pending"]
+        to: ["confirmed"]
