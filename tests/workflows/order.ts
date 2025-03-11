@@ -3,7 +3,7 @@ import { WorkflowDefinition } from '../../src';
 export default {
     name: 'order',
     type: 'workflow',
-    auditTrail: { enabled: true },
+    auditTrail: { enabled: false },
     stateField: 'state',
     initialState: ['draft'],
     places: {

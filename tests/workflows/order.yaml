@@ -1,6 +1,6 @@
 name: "order"
 auditTrail:
-    enabled: true
+    enabled: false
 type: "state_machine"
 stateField: "state"
 initialState: ["draft"]
