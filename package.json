@@ -1,13 +1,13 @@
 {
     "name": "symflow",
     "version": "1.0.0",
-    "description": "A simple Symfony-inspired workflow engine for Node.js",
+    "description": "SymFlow is a powerful workflow and state machine engine for Node.js, inspired by Symfony Workflow. It allows you to define workflows, transition entities between states, and optionally log audit trails.",
     "main": "index.js",
     "scripts": {
         "build": "tsc",
         "test": "jest",
-        "lint": "eslint 'src/**/*.ts'",
-        "lint:fix": "eslint 'src/**/*.ts' --fix",
+        "lint": "eslint 'src//*.ts'",
+        "lint:fix": "eslint 'src//*.ts' --fix",
         "prepublishOnly": "npm run build && npm run lint"
     },
     "bin": {
@@ -19,7 +19,9 @@
         "symfony",
         "transitions",
         "places",
-        "metadata"
+        "metadata",
+        "audit-trail",
+        "stateful"
     ],
     "author": {
         "name": "Vandeth Tho",
@@ -34,16 +36,16 @@
         "@types/js-yaml": "^4.0.9",
         "@typescript-eslint/eslint-plugin": "^8.26.0",
         "@typescript-eslint/parser": "^8.26.0",
-        "eslint": "^9.21.0",
-        "eslint-config-prettier": "^10.0.2",
+        "eslint": "^9.22.0",
+        "eslint-config-prettier": "^10.1.1",
         "eslint-plugin-prettier": "^5.2.3",
         "globals": "^16.0.0",
-        "jest": "^29.0.0",
+        "jest": "^29.7.0",
         "prettier": "^3.5.3",
         "ts-jest": "^29.2.6",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.2",
-        "typescript-eslint": "^8.26.0"
+        "typescript-eslint": "^8.26.1"
     },
     "dependencies": {
         "commander": "^13.1.0",
