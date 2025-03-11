@@ -1,5 +1,6 @@
 {
     "name": "order",
+    "type": "state_machine",
     "auditTrail": { "enabled": true },
     "stateField": "state",
     "initialState": ["draft"],
