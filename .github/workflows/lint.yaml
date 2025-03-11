@@ -8,7 +8,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                node-version: [20, 22, 24]
+                node-version: 20
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
@@ -16,7 +16,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v3
               with:
-                  node-version: ${{ matrix.php-versions }}
+                  node-version: ${{ matrix.node-versions }}
 
             - name: Install Dependencies
               run: npm install
