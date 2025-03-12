@@ -30,6 +30,7 @@ jobs:
               with:
                   release-type: node
                   token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Debug Release Outputs
               run: echo "Release outputs - ${{ toJSON(steps.release.outputs) }}"
 
