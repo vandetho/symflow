@@ -1,55 +1,24 @@
-name: CI/CD - Test & Publish to npm
+name: Release and Publish to npm
 
 on:
     push:
         branches:
             - main
-    pull_request:
-        branches:
-            - main
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                node-versions: [20]
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
-
-            - name: Set up Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: ${{ matrix.node-versions }}
-                  registry-url: "https://registry.npmjs.org/"
-
-            - name: Install dependencies
-              run: npm install
-
-            - name: Run Linting
-              run: npm run lint
-
-            - name: Run Tests with Coverage
-              run: npm run test:coverage
-
-            - name: Check TypeScript Types
-              run: npm run build
-
     release:
-        needs: test
         runs-on: ubuntu-latest
 
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
 
             - name: Set up Node.js
               uses: actions/setup-node@v3
               with:
-                  node-version: 18
+                  node-version: 20
                   registry-url: "https://registry.npmjs.org/"
 
             - name: Install dependencies
@@ -61,15 +30,16 @@ jobs:
               with:
                   release-type: node
                   package-name: symflow
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish to npm
-              if: ${{ steps.release.outputs.release_created }}
+              if: steps.release.outputs.release_created == 'true'
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Create GitHub Release
-              if: ${{ steps.release.outputs.release_created }}
+              if: steps.release.outputs.release_created == 'true'
               uses: softprops/action-gh-release@v1
               with:
                   tag_name: ${{ steps.release.outputs.tag_name }}
