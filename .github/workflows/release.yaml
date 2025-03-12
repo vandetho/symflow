@@ -34,9 +34,6 @@ jobs:
                   release-type: node
                   token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Debug Release Outputs
-              run: echo "Release outputs - ${{ toJSON(steps.release.outputs) }}"
-
             - name: Publish to npm
               if: steps.release.outputs.release_created == 'true'
               run: npm publish --access public
