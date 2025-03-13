@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/vandetho/symflow/compare/v1.5.0...v1.6.0) (2025-03-13)
+
+
+### Features
+
+* add metadata support to workflow events ([21787cd](https://github.com/vandetho/symflow/commit/21787cdcc11c8a7d7f62587c7487caeb85e2ea25))
+
 ## [1.5.0](https://github.com/vandetho/symflow/compare/v1.4.0...v1.5.0) (2025-03-13)
 
 
