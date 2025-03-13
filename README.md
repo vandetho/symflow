@@ -9,6 +9,14 @@ It allows you to define **workflows**, transition **entities between states**, a
 > ✅ **No reliance on JSON or YAML configuration files**  
 > ✅ **Works with or without Express.js**  
 
+## Table of Contents
+- [📦 Introduction](#-installation)
+- [🚀 Getting Started](#-getting-started)
+- [⚡ Using SymFlow with Express.js](#-using-symflow-with-expressjs)
+- [📜 Features](#-features)
+- [📚 API Reference](#-api-reference)
+- 
+
 ---
 
 ## **📦 Installation**
