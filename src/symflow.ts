@@ -60,21 +60,25 @@ export class Symflow<T extends Record<string, any>> {
     /**
      * Checks if a transition is allowed based on the entity's current state(s).
      */
-    async canTransition(entity: T, transition: string) {
+    async canTransition(entity: T, transition: string, shouldTriggerGuard = false) {
         const currentStates = this.getCurrentStates(entity);
         const fromState = this.transitions[transition]?.from;
         if (!this.matchFromStates(currentStates, fromState)) {
             return false;
         }
 
-        return await this.triggerEvent(
-            WorkflowEventType.GUARD,
-            entity,
-            transition,
-            currentStates,
-            this.transitions[transition].to,
-            true,
-        );
+        if (shouldTriggerGuard) {
+            return await this.triggerEvent(
+                WorkflowEventType.GUARD,
+                entity,
+                transition,
+                currentStates,
+                this.transitions[transition].to,
+                true,
+            );
+        }
+
+        return true;
     }
 
     /**
@@ -144,10 +148,6 @@ export class Symflow<T extends Record<string, any>> {
             throw new Error(`❌ Transition "${transition}" blocked by Guard event.`);
         }
 
-        if (!(await this.canTransition(entity, transition))) {
-            throw new Error(`Transition "${transition}" is not allowed from state "${fromState}".`);
-        }
-
         await this.triggerEvent(WorkflowEventType.LEAVE, entity, transition, fromState, newState);
         await this.triggerEvent(WorkflowEventType.ENTER, entity, transition, fromState, newState);
 
@@ -172,6 +172,10 @@ export class Symflow<T extends Record<string, any>> {
      * Applies a transition to the entity.
      */
     async apply(entity: T, transition: string) {
+        if (!(await this.canTransition(entity, transition, false))) {
+            throw new Error(`Transition "${transition}" is not allowed from state "${entity[this.stateField]}".`);
+        }
+
         await this.applyTransition(entity, transition, this.transitions[transition].to);
     }
 
