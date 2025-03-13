@@ -14,6 +14,7 @@ It allows you to define **workflows**, transition **entities between states**, a
 - [🚀 Getting Started](#-getting-started)
 - [⚡ Using SymFlow with Express.js](#-using-symflow-with-expressjs)
 - [📜 Features](#-features)
+- [🔥 Event Handling in SymFlow](#-event-handling-in-symflow)
 - [📚 API Reference](#-api-reference)
 - [📌 Roadmap](#-roadmap)
 - [📜 License](#-license)
@@ -100,6 +101,68 @@ import { AuditTrail } from "symflow/audit-trail";
 
 const logs = await AuditTrail.getAuditTrail("order", order.id);
 console.log(logs);
+```
+
+---
+
+## 🔥 **Event Handling in SymFlow**
+SymFlow allows you to **hook into various workflow events** using event listeners.
+### 📌 **Available Events**
+| Event Type   | Description                                          |
+|--------------|------------------------------------------------------|
+| `ANNOUNCE`   | Fires **before** a transition begins.                |
+| `GUARD`      | **Prevents** transitions if conditions are not met.  |
+| `LEAVE`      | Fires **before leaving** a state.                    |
+| `ENTER`      | Fires **before entering** a state.                   |
+| `TRANSITION` | Fires **during** a transition.                       |
+| `COMPLETED`  | Fires **after** a transition successfully completes. |
+| `ENTERED`    | Fires **after** a state is successfully entered.     |
+
+## ✨ **Using Event Listeners**
+You can **register event listeners** to customize transition behavior.
+
+### 🛠 **Example: Blocking a Transition with `GUARD`**
+```typescript
+import { SymFlow, WorkflowEventType } from "symflow";
+
+// Define the workflow
+const workflowDefinition = {
+    name: "order_workflow",
+    stateField: "status",
+    initialState: ["draft"],
+    places: { draft: {}, pending: {}, confirmed: {} },
+    transitions: { approve: { from: ["draft"], to: ["pending"] } }
+};
+
+// Create a workflow instance
+const workflow = new SymFlow(workflowDefinition);
+
+// Register a Guard event to prevent unauthorized transitions
+workflow.on(WorkflowEventType.GUARD, (event) => {
+    console.log(`Checking guard for transition "${event.transition}"`);
+    if (event.entity.userRole !== "admin") {
+        console.log("❌ Access Denied: Only admins can approve orders.");
+        return false; // 🚫 Prevent transition
+    }
+    return true;
+});
+
+// Sample order entity
+const order = { id: 1, status: ["draft"], userRole: "customer" };
+
+// Attempt transition
+workflow.apply(order, "approve").catch((err) => console.log(err.message));
+
+// Output: ❌ Access Denied: Only admins can approve orders.
+```
+---
+
+### ✅ **Example: Logging Transitions with `COMPLETED`**
+You can use the `COMPLETED` event to **log successful state changes**.
+```typescript
+workflow.on(WorkflowEventType.COMPLETED, (event) => {
+    console.log(`✅ Order ${event.entity.id} successfully transitioned to ${event.toState}`);
+});
 ```
 
 ---
