@@ -156,6 +156,17 @@ workflow.apply(order, "approve").catch((err) => console.log(err.message));
 // Output: ❌ Access Denied: Only admins can approve orders.
 ```
 ---
+### 📜 **Metadata in Workflow Events**
+
+Metadata can be included in transitions and is accessible inside events.
+```typescript
+workflow.on(WorkflowEventType.COMPLETED, (event) => {
+    console.log(`✅ Transition "${event.transition}" completed!`);
+    console.log(`📌 Metadata:`, event.metadata); // ✅ Metadata is now accessible
+});
+```
+
+---
 
 ### ✅ **Example: Logging Transitions with `COMPLETED`**
 You can use the `COMPLETED` event to **log successful state changes**.
@@ -302,7 +313,7 @@ Pull requests are welcome! Open an issue if you have feature requests.
 ---
 
 ## **⭐ Support**
-If you like **SymFlow**, give it a ⭐ on [GitHub](https://github.com/your-repo/symflow) and [npm](https://www.npmjs.com/package/symflow).
+If you like **SymFlow**, give it a ⭐ on [GitHub](https://github.com/vandetho/symflow) and [npm](https://www.npmjs.com/package/symflow).
 
 ---
 🚀 **SymFlow – The Simple & Flexible Workflow Engine for Node.js!**

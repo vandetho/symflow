@@ -81,4 +81,34 @@ describe('Symflow - Manual and Automatic Workflow Loading', () => {
             expect((error as Error).message).toMatch('❌ Transition "initiate" blocked by Guard event.');
         }
     });
+
+    test('should pass metadata in event payload', async () => {
+        const workflow = new Symflow({
+            name: 'order',
+            type: 'workflow',
+            stateField: 'state',
+            initialState: ['draft'],
+            places: { draft: {}, pending: {} },
+            transitions: {
+                initiate: {
+                    from: ['draft'],
+                    to: ['pending'],
+                    metadata: { requiredRole: 'admin' }, // ✅ Add metadata
+                },
+            },
+        });
+
+        let receivedMetadata = null;
+
+        workflow.on(WorkflowEventType.COMPLETED, (event) => {
+            receivedMetadata = event.metadata; // ✅ Capture metadata
+        });
+
+        const order = { id: 1, state: ['draft'] };
+
+        await workflow.apply(order, 'initiate');
+
+        // ✅ Ensure metadata was passed correctly
+        expect(receivedMetadata).toEqual({ requiredRole: 'admin' });
+    });
 });

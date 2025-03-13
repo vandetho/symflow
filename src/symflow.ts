@@ -102,7 +102,9 @@ export class Symflow<T extends Record<string, any>> {
         toState?: string | string[],
         silent = false,
     ): Promise<boolean> {
-        const eventPayload: WorkflowEvent<T> = { entity, transition, fromState, toState };
+        const metadata = this.transitions[transition]?.metadata || {};
+
+        const eventPayload: WorkflowEvent<T> = { entity, transition, fromState, toState, metadata };
 
         // Log event to persistent audit trail
         await AuditTrail.logEvent(
@@ -113,6 +115,7 @@ export class Symflow<T extends Record<string, any>> {
                 transition,
                 fromState,
                 toState,
+                metadata,
                 timestamp: new Date().toISOString(),
             },
             !silent && this.auditEnabled,
