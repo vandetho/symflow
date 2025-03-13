@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/vandetho/symflow/compare/v1.3.0...v1.4.0) (2025-03-13)
+
+
+### Features
+
+* update README with new Workflow and StateMachine APIs ([6d65760](https://github.com/vandetho/symflow/commit/6d65760d7aad13180685c5d27d0e50218f1dd8e1))
+
 ## [1.3.0](https://github.com/vandetho/symflow/compare/v1.2.0...v1.3.0) (2025-03-13)
 
 
