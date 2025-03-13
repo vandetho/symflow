@@ -58,7 +58,7 @@ describe('Symflow - Manual and Automatic Workflow Loading', () => {
         expect(orderEntity.state).toEqual(['draft']);
     });
 
-    test('should block transition if guard returns false', async () => {
+    test('should block transition if guard returns true', async () => {
         const workflow = new Symflow({
             name: 'order',
             type: 'workflow',

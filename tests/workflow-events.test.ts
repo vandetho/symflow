@@ -61,6 +61,7 @@ describe('Workflow Event Tests (Non-State Machine)', () => {
         await workflow.apply(orderEntity, 'confirm');
 
         expect(orderEntity.state).toEqual(['confirmed']);
+        console.log({ eventLog });
         expect(eventLog).toEqual([
             'ANNOUNCE - Transition: initiate, From: ["draft"], To: ["pending"]',
             'GUARD - Transition: initiate, From: ["draft"], To: ["pending"]',

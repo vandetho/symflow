@@ -44,20 +44,20 @@ describe('State Machine Tests', () => {
     });
 
     test('should transition from draft to pending', async () => {
-        expect(stateMachine.canTransition(orderEntity, 'initiate')).toBe(true);
+        expect(await stateMachine.canTransition(orderEntity, 'initiate')).toBe(true);
         await stateMachine.apply(orderEntity, 'initiate');
         expect(orderEntity.state).toBe('pending');
     });
 
     test('should transition from pending to confirmed', async () => {
         await stateMachine.apply(orderEntity, 'initiate');
-        expect(stateMachine.canTransition(orderEntity, 'confirm')).toBe(true);
+        expect(await stateMachine.canTransition(orderEntity, 'confirm')).toBe(true);
         await stateMachine.apply(orderEntity, 'confirm');
         expect(orderEntity.state).toBe('confirmed');
     });
 
     test('should NOT allow invalid transitions and throw an error', async () => {
-        expect(stateMachine.canTransition(orderEntity, 'confirm')).toBe(false);
+        expect(await stateMachine.canTransition(orderEntity, 'confirm')).toBe(false);
         try {
             await stateMachine.apply(orderEntity, 'confirm');
         } catch (error) {
@@ -68,7 +68,7 @@ describe('State Machine Tests', () => {
     test('should NOT allow transition from confirmed back to draft', async () => {
         await stateMachine.apply(orderEntity, 'initiate');
         await stateMachine.apply(orderEntity, 'confirm');
-        expect(stateMachine.canTransition(orderEntity, 'initiate')).toBe(false);
+        expect(await stateMachine.canTransition(orderEntity, 'initiate')).toBe(false);
         try {
             await stateMachine.apply(orderEntity, 'confirm');
         } catch (error) {

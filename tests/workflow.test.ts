@@ -30,7 +30,7 @@ describe('Workflow Tests', () => {
     });
 
     test('should transition from draft to pending', async () => {
-        expect(workflow.canTransition(orderEntity, 'initiate')).toBe(true);
+        expect(await workflow.canTransition(orderEntity, 'initiate')).toBe(true);
         await workflow.apply(orderEntity, 'initiate');
         expect(orderEntity.state).toContain('pending');
         expect(orderEntity.state).not.toContain('draft');
@@ -38,14 +38,14 @@ describe('Workflow Tests', () => {
 
     test('should transition from pending to confirmed', async () => {
         await workflow.apply(orderEntity, 'initiate');
-        expect(workflow.canTransition(orderEntity, 'confirm')).toBe(true);
+        expect(await workflow.canTransition(orderEntity, 'confirm')).toBe(true);
         await workflow.apply(orderEntity, 'confirm');
         expect(orderEntity.state).toContain('confirmed');
         expect(orderEntity.state).not.toContain('pending');
     });
 
     test('should NOT allow invalid transitions and throw an error', async () => {
-        expect(workflow.canTransition(orderEntity, 'confirm')).toBe(false);
+        expect(await workflow.canTransition(orderEntity, 'confirm')).toBe(false);
         try {
             await workflow.apply(orderEntity, 'confirm');
         } catch (error) {
@@ -89,7 +89,7 @@ describe('AND & OR Transition Tests', () => {
     });
 
     test('should NOT transition with AND logic if missing required states', async () => {
-        expect(logicalWorkflow.canTransition(orderEntity, 'approve')).toBe(false);
+        expect(await logicalWorkflow.canTransition(orderEntity, 'approve')).toBe(false);
         try {
             await logicalWorkflow.apply(orderEntity, 'approve');
         } catch (error) {
@@ -99,19 +99,19 @@ describe('AND & OR Transition Tests', () => {
 
     test('should transition with AND logic if all required states are present', async () => {
         orderEntity.state = ['draft', 'review'];
-        expect(logicalWorkflow.canTransition(orderEntity, 'approve')).toBe(true);
+        expect(await logicalWorkflow.canTransition(orderEntity, 'approve')).toBe(true);
         await logicalWorkflow.apply(orderEntity, 'approve');
         expect(orderEntity.state).toContain('pending');
     });
 
     test('should transition with OR logic if at least one required state is present', async () => {
-        expect(logicalWorkflow.canTransition(orderEntity, 'verify')).toBe(true);
+        expect(await logicalWorkflow.canTransition(orderEntity, 'verify')).toBe(true);
         await logicalWorkflow.apply(orderEntity, 'verify');
         expect(orderEntity.state).toContain('pending');
     });
 
     test('should NOT allow transitioning from invalid states', async () => {
-        expect(logicalWorkflow.canTransition(orderEntity, 'confirm')).toBe(false);
+        expect(await logicalWorkflow.canTransition(orderEntity, 'confirm')).toBe(false);
         try {
             await logicalWorkflow.apply(orderEntity, 'confirm');
         } catch (error) {

@@ -60,9 +60,21 @@ export class Symflow<T extends Record<string, any>> {
     /**
      * Checks if a transition is allowed based on the entity's current state(s).
      */
-    canTransition(entity: T, transition: string): boolean {
+    async canTransition(entity: T, transition: string) {
         const currentStates = this.getCurrentStates(entity);
-        return this.matchFromStates(currentStates, this.transitions[transition]?.from);
+        const fromState = this.transitions[transition]?.from;
+        if (!this.matchFromStates(currentStates, fromState)) {
+            return false;
+        }
+
+        return await this.triggerEvent(
+            WorkflowEventType.GUARD,
+            entity,
+            transition,
+            currentStates,
+            this.transitions[transition].to,
+            true,
+        );
     }
 
     /**
@@ -84,6 +96,7 @@ export class Symflow<T extends Record<string, any>> {
         transition: string,
         fromState?: string | string[],
         toState?: string | string[],
+        silent = false,
     ): Promise<boolean> {
         const eventPayload: WorkflowEvent<T> = { entity, transition, fromState, toState };
 
@@ -98,7 +111,7 @@ export class Symflow<T extends Record<string, any>> {
                 toState,
                 timestamp: new Date().toISOString(),
             },
-            this.auditEnabled,
+            !silent && this.auditEnabled,
         );
 
         let allowTransition = true;
@@ -131,10 +144,8 @@ export class Symflow<T extends Record<string, any>> {
             throw new Error(`❌ Transition "${transition}" blocked by Guard event.`);
         }
 
-        if (!this.canTransition(entity, transition)) {
-            return new Promise((_) => {
-                throw new Error(`Transition "${transition}" is not allowed from state "${fromState}".`);
-            });
+        if (!(await this.canTransition(entity, transition))) {
+            throw new Error(`Transition "${transition}" is not allowed from state "${fromState}".`);
         }
 
         await this.triggerEvent(WorkflowEventType.LEAVE, entity, transition, fromState, newState);
@@ -161,12 +172,6 @@ export class Symflow<T extends Record<string, any>> {
      * Applies a transition to the entity.
      */
     async apply(entity: T, transition: string) {
-        if (!this.canTransition(entity, transition)) {
-            return new Promise((_, reject) => {
-                reject(new Error(`Transition "${transition}" is not allowed from state "${entity[this.stateField]}".`));
-            });
-        }
-
         await this.applyTransition(entity, transition, this.transitions[transition].to);
     }
 
