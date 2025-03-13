@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/vandetho/symflow/compare/v1.4.0...v1.5.0) (2025-03-13)
+
+
+### Features
+
+* add guard functionality to block transitions ([fb58e55](https://github.com/vandetho/symflow/commit/fb58e55a29df1d11c1ac7cdfbb871c17b1329676))
+* add optional guards to transition checks ([ebc9e84](https://github.com/vandetho/symflow/commit/ebc9e84f9449984131168a29b569d0f004a264b6))
+
 ## [1.4.0](https://github.com/vandetho/symflow/compare/v1.3.0...v1.4.0) (2025-03-13)
 
 
