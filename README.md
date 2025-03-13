@@ -15,7 +15,13 @@ It allows you to define **workflows**, transition **entities between states**, a
 - [⚡ Using SymFlow with Express.js](#-using-symflow-with-expressjs)
 - [📜 Features](#-features)
 - [📚 API Reference](#-api-reference)
-- 
+- [📌 Roadmap](#-roadmap)
+- [📜 License](#-license)
+- [🤝 Contributing](#-contributing)
+- [⭐ Support](#-support)
+- [📜 Workflow Definition Structure](#-workflow-definition-structure)
+- [📜 Place Structure](#-place-structure)
+- [📜 Transition Structure](#-transition-structure)
 
 ---
 
