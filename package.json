@@ -1,6 +1,6 @@
 {
     "name": "symflow",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "description": "SymFlow is a powerful workflow and state machine engine for Node.js, inspired by Symfony Workflow. It allows you to define workflows, transition entities between states, and optionally log audit trails.",
     "main": "index.js",
     "scripts": {

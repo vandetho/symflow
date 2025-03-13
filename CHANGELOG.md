@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/vandetho/symflow/compare/v1.7.0...v1.8.0) (2025-03-13)
+
+
+### Features
+
+* **events:** enhance README with event handling examples ([ea4e436](https://github.com/vandetho/symflow/commit/ea4e4365069cbb62775deb7cd66f0a3a2ec0a917))
+
 ## [1.7.0](https://github.com/vandetho/symflow/compare/v1.6.0...v1.7.0) (2025-03-13)
 
 
