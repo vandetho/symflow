@@ -199,6 +199,12 @@ curl http://localhost:3000/entities/1/audit-trail
 ### **`new SymFlow(definition)`**
 - **Defines a new workflow** that can be used globally.
 
+### **`new Workflow(definition)`**
+- **Defines a new workflow** that can be used locally.
+
+### **`new StateMachine(definition)`**
+- **Defines a new state machine** that can be used locally.
+
 ### **`SymFlow.use("workflowName")`**
 - **Retrieves a registered workflow** by name.
 
