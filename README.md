@@ -205,9 +205,6 @@ curl http://localhost:3000/entities/1/audit-trail
 ### **`new StateMachine(definition)`**
 - **Defines a new state machine** that can be used locally.
 
-### **`SymFlow.use("workflowName")`**
-- **Retrieves a registered workflow** by name.
-
 ### **`workflow.canTransition(entity, transition)`**
 Returns `true` if the entity can transition.
 
