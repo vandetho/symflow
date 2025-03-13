@@ -23,10 +23,19 @@ export interface TransitionEvent<T> extends BaseEvent<T> {}
 export interface CompletedEvent<T> extends BaseEvent<T> {}
 export interface EnteredEvent<T> extends BaseEvent<T> {}
 
+export type WorkflowEvent<T> =
+    | AnnounceEvent<T>
+    | GuardEvent<T>
+    | LeaveEvent<T>
+    | EnterEvent<T>
+    | TransitionEvent<T>
+    | CompletedEvent<T>
+    | EnteredEvent<T>;
+
 // Event handler types
 export type WorkflowEventHandler<T> =
     | ((event: AnnounceEvent<T>) => void)
-    | ((event: GuardEvent<T>) => void)
+    | ((event: GuardEvent<T>) => boolean)
     | ((event: LeaveEvent<T>) => void)
     | ((event: EnterEvent<T>) => void)
     | ((event: TransitionEvent<T>) => void)

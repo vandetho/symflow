@@ -1,5 +1,5 @@
-import { WorkflowDefinition, State, Transition, Place } from './workflow-definition';
-import { WorkflowEventHandler, WorkflowEventType } from './event-workflow';
+import { Place, State, Transition, WorkflowDefinition } from './workflow-definition';
+import { WorkflowEvent, WorkflowEventHandler, WorkflowEventType } from './event-workflow';
 import { AuditTrail } from './audit-trail';
 import { loadWorkflowDefinition } from './workflow-loader';
 
@@ -84,8 +84,8 @@ export class Symflow<T extends Record<string, any>> {
         transition: string,
         fromState?: string | string[],
         toState?: string | string[],
-    ): Promise<void> {
-        const eventPayload = { entity, transition, fromState, toState };
+    ): Promise<boolean> {
+        const eventPayload: WorkflowEvent<T> = { entity, transition, fromState, toState };
 
         // Log event to persistent audit trail
         await AuditTrail.logEvent(
@@ -101,9 +101,21 @@ export class Symflow<T extends Record<string, any>> {
             this.auditEnabled,
         );
 
-        if (this.eventHandlers[eventType]) {
-            this.eventHandlers[eventType]!.forEach((handler) => handler(eventPayload));
+        let allowTransition = true;
+
+        // If it's a Guard event, check if any handler returns `false`
+        if (eventType === WorkflowEventType.GUARD) {
+            for (const handler of this.eventHandlers[eventType] || []) {
+                if (handler(eventPayload) === false) {
+                    allowTransition = false;
+                    break;
+                }
+            }
+        } else {
+            this.eventHandlers[eventType]?.forEach((handler) => handler(eventPayload));
         }
+
+        return allowTransition;
     }
 
     /**
@@ -113,7 +125,11 @@ export class Symflow<T extends Record<string, any>> {
         const fromState = this.getCurrentStates(entity);
 
         await this.triggerEvent(WorkflowEventType.ANNOUNCE, entity, transition, fromState, newState);
-        await this.triggerEvent(WorkflowEventType.GUARD, entity, transition, fromState, newState);
+
+        // 🚀 **Check if the Guard event allows the transition**
+        if (!(await this.triggerEvent(WorkflowEventType.GUARD, entity, transition, fromState, newState))) {
+            throw new Error(`❌ Transition "${transition}" blocked by Guard event.`);
+        }
 
         if (!this.canTransition(entity, transition)) {
             return new Promise((_) => {

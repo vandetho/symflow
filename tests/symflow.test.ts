@@ -57,4 +57,28 @@ describe('Symflow - Manual and Automatic Workflow Loading', () => {
         );
         expect(orderEntity.state).toEqual(['draft']);
     });
+
+    test('should block transition if guard returns false', async () => {
+        const workflow = new Symflow({
+            name: 'order',
+            type: 'workflow',
+            stateField: 'state',
+            initialState: ['draft'],
+            places: { draft: {}, pending: {} },
+            transitions: { initiate: { from: ['draft'], to: ['pending'] } },
+        });
+
+        workflow.on(WorkflowEventType.GUARD, (event) => {
+            if (event.transition === 'initiate') {
+                return false; // Block transition
+            }
+        });
+
+        const order = { id: 1, state: ['draft'] };
+        try {
+            await workflow.apply(order, 'initiate');
+        } catch (error) {
+            expect((error as Error).message).toMatch('❌ Transition "initiate" blocked by Guard event.');
+        }
+    });
 });
