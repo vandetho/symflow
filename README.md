@@ -1,6 +1,6 @@
-# **SymFlow: A Flexible Workflow Engine for Node.js**
+# **Symflow: A Flexible Workflow Engine for Node.js**
 
-**SymFlow** is a powerful **workflow and state machine engine** for **Node.js**, inspired by **Symfony Workflow**.  
+**Symflow** is a powerful **workflow and state machine engine** for **Node.js**, inspired by **Symfony Workflow**.  
 It allows you to define **workflows**, transition **entities between states**, and optionally **log audit trails**.
 
 > ✅ **Works like Sequelize models or Mongoose schemas**  
@@ -12,9 +12,9 @@ It allows you to define **workflows**, transition **entities between states**, a
 ## Table of Contents
 - [📦 Introduction](#-installation)
 - [🚀 Getting Started](#-getting-started)
-- [⚡ Using SymFlow with Express.js](#-using-symflow-with-expressjs)
+- [⚡ Using Symflow with Express.js](#-using-symflow-with-expressjs)
 - [📜 Features](#-features)
-- [🔥 Event Handling in SymFlow](#-event-handling-in-symflow)
+- [🔥 Event Handling in Symflow](#-event-handling-in-symflow)
 - [📚 API Reference](#-api-reference)
 - [📌 Roadmap](#-roadmap)
 - [📜 License](#-license)
@@ -39,23 +39,39 @@ You can **define a workflow** like a Sequelize model or Mongoose schema.
 
 📂 **`src/workflows/order.workflow.ts`**
 ```typescript
-import { SymFlow } from "symflow";
+import { Symflow } from 'symflow';
 
-export const OrderWorkflow = new SymFlow({
-    name: "order",
+export const OrderWorkflow = new Symflow({
+    name: 'order',
     auditTrail: { enabled: true },
-    stateField: "state",
-    initialState: ["draft"],
+    stateField: 'state',
+    initialState: ['draft'],
     places: {
         draft: {},
         pending: {},
         confirmed: {},
     },
     transitions: {
-        initiate: { from: ["draft"], to: ["pending"] },
-        confirm: { from: ["pending"], to: ["confirmed"] },
+        initiate: { from: ['draft'], to: ['pending'] },
+        confirm: { from: ['pending'], to: ['confirmed'] },
+    }, 
+    events: {
+        [WorkflowEventType.GUARD]: [
+            (event) => {
+                if (event.entity.userRole !== 'admin') {
+                    console.log('❌ Access Denied: Only admins can approve orders.');
+                    return false;
+                }
+                return true;
+            },
+        ],
+        [WorkflowEventType.COMPLETED]: [
+            (event) => console.log(`✅ Order transitioned to ${event.toState}`),
+        ],
     },
 });
+
+
 ```
 
 ---
@@ -64,9 +80,9 @@ export const OrderWorkflow = new SymFlow({
 Once a workflow is defined, you can retrieve it from **anywhere** in your project.
 
 ```typescript
-import { SymFlow } from "symflow";
+import { Symflow } from "symflow";
 
-const workflow = SymFlow.use("order"); // Retrieve registered workflow
+const workflow = Symflow.use("order"); // Retrieve registered workflow
 
 const order = { id: 1, state: ["draft"] };
 
@@ -105,8 +121,8 @@ console.log(logs);
 
 ---
 
-## 🔥 **Event Handling in SymFlow**
-SymFlow allows you to **hook into various workflow events** using event listeners.
+## 🔥 **Event Handling in Symflow**
+Symflow allows you to **hook into various workflow events** using event listeners.
 ### 📌 **Available Events**
 | Event Type   | Description                                          |
 |--------------|------------------------------------------------------|
@@ -123,7 +139,7 @@ You can **register event listeners** to customize transition behavior.
 
 ### 🛠 **Example: Blocking a Transition with `GUARD`**
 ```typescript
-import { SymFlow, WorkflowEventType } from "symflow";
+import { Symflow, WorkflowEventType } from "symflow";
 
 // Define the workflow
 const workflowDefinition = {
@@ -135,7 +151,7 @@ const workflowDefinition = {
 };
 
 // Create a workflow instance
-const workflow = new SymFlow(workflowDefinition);
+const workflow = new Symflow(workflowDefinition);
 
 // Register a Guard event to prevent unauthorized transitions
 workflow.on(WorkflowEventType.GUARD, (event) => {
@@ -178,9 +194,9 @@ workflow.on(WorkflowEventType.COMPLETED, (event) => {
 
 ---
 
-## **⚡ Using SymFlow with Express.js**
+## **⚡ Using Symflow with Express.js**
 ### **📌 Setting Up Express API**
-SymFlow **does not require Express**, but you can integrate it into your Express.js project.
+Symflow **does not require Express**, but you can integrate it into your Express.js project.
 
 📂 **Project Structure**
 ```
@@ -196,7 +212,7 @@ SymFlow **does not require Express**, but you can integrate it into your Express
 ```typescript
 import express from "express";
 import bodyParser from "body-parser";
-import { SymFlow } from "symflow";
+import { Symflow } from "symflow";
 import { AuditTrail } from "symflow/audit-trail";
 import "./workflows/order.workflow"; // Ensures workflows are registered
 
@@ -210,7 +226,7 @@ const entities: Record<number, { id: number; state: string[] }> = {
 };
 
 // 🔹 Retrieve the registered workflow
-const orderWorkflow = SymFlow.use("order");
+const orderWorkflow = Symflow.use("order");
 
 app.get("/entities/:id", (req, res) => {
     const entityId = Number(req.params.id);
@@ -270,7 +286,7 @@ curl http://localhost:3000/entities/1/audit-trail
 ---
 
 ## **📚 API Reference**
-### **`new SymFlow(definition)`**
+### **`new Symflow(definition)`**
 - **Defines a new workflow** that can be used globally.
 
 ### **`new Workflow(definition)`**
@@ -313,10 +329,10 @@ Pull requests are welcome! Open an issue if you have feature requests.
 ---
 
 ## **⭐ Support**
-If you like **SymFlow**, give it a ⭐ on [GitHub](https://github.com/vandetho/symflow) and [npm](https://www.npmjs.com/package/symflow).
+If you like **Symflow**, give it a ⭐ on [GitHub](https://github.com/vandetho/symflow) and [npm](https://www.npmjs.com/package/symflow).
 
 ---
-🚀 **SymFlow – The Simple & Flexible Workflow Engine for Node.js!**
+🚀 **Symflow – The Simple & Flexible Workflow Engine for Node.js!**
 
 ---
 

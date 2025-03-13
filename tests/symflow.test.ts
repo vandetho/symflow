@@ -111,4 +111,37 @@ describe('Symflow - Manual and Automatic Workflow Loading', () => {
         // ✅ Ensure metadata was passed correctly
         expect(receivedMetadata).toEqual({ requiredRole: 'admin' });
     });
+
+    test('should trigger event handlers from workflow definition', async () => {
+        let guardTriggered = false;
+        let completedMessage = '';
+
+        const workflow = new Symflow({
+            name: 'test_workflow',
+            stateField: 'state',
+            initialState: ['draft'],
+            places: { draft: {}, pending: {} },
+            transitions: { initiate: { from: ['draft'], to: ['pending'] } },
+            events: {
+                [WorkflowEventType.GUARD]: [
+                    () => {
+                        guardTriggered = true;
+                        return true;
+                    },
+                ],
+                [WorkflowEventType.COMPLETED]: [
+                    (event) => {
+                        completedMessage = `Transitioned to ${event.toState}`;
+                    },
+                ],
+            },
+        });
+
+        const entity = { id: 1, state: ['draft'] };
+
+        await workflow.apply(entity, 'initiate');
+
+        expect(guardTriggered).toBe(true);
+        expect(completedMessage).toBe('Transitioned to pending');
+    });
 });
