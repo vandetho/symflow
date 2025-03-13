@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/vandetho/symflow/compare/v1.1.0...v1.2.0) (2025-03-13)
+
+
+### Features
+
+* **docs:** add Table of Contents to README ([a02b7fd](https://github.com/vandetho/symflow/commit/a02b7fd8420c5f2cd75fb2d5049509d9da34500c))
+
 ## [1.1.0](https://github.com/vandetho/symflow/compare/1.0.7...v1.1.0) (2025-03-12)
 
 
