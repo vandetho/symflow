@@ -13,6 +13,7 @@ interface BaseEvent<T> {
     transition: string;
     fromState?: string | string[];
     toState?: string | string[];
+    metadata?: Record<string, any>;
 }
 
 export interface AnnounceEvent<T> extends BaseEvent<T> {}

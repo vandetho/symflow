@@ -29,6 +29,15 @@ export class Symflow<T extends Record<string, any>> {
             typeof definition.auditTrail === 'boolean'
                 ? definition.auditTrail
                 : (definition.auditTrail?.enabled ?? false); // 🔹 Default: Disabled
+
+        if (definition.events) {
+            for (const [eventType, handlers] of Object.entries(definition.events) as [
+                WorkflowEventType,
+                WorkflowEventHandler<T>[],
+            ][]) {
+                this.eventHandlers[eventType] = handlers;
+            }
+        }
     }
 
     /**
@@ -102,7 +111,9 @@ export class Symflow<T extends Record<string, any>> {
         toState?: string | string[],
         silent = false,
     ): Promise<boolean> {
-        const eventPayload: WorkflowEvent<T> = { entity, transition, fromState, toState };
+        const metadata = this.transitions[transition]?.metadata || {};
+
+        const eventPayload: WorkflowEvent<T> = { entity, transition, fromState, toState, metadata };
 
         // Log event to persistent audit trail
         await AuditTrail.logEvent(
@@ -113,6 +124,7 @@ export class Symflow<T extends Record<string, any>> {
                 transition,
                 fromState,
                 toState,
+                metadata,
                 timestamp: new Date().toISOString(),
             },
             !silent && this.auditEnabled,

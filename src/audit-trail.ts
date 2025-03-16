@@ -30,6 +30,7 @@ export interface AuditTrailEntry {
     transition: string;
     fromState?: string | string[];
     toState?: string | string[];
+    metadata?: Record<string, any>;
     timestamp: string;
 }
 

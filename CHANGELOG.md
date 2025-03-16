@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.8.0](https://github.com/vandetho/symflow/compare/v1.7.0...v1.8.0) (2025-03-13)
+
+
+### Features
+
+* **events:** enhance README with event handling examples ([ea4e436](https://github.com/vandetho/symflow/commit/ea4e4365069cbb62775deb7cd66f0a3a2ec0a917))
+
+## [1.7.0](https://github.com/vandetho/symflow/compare/v1.6.0...v1.7.0) (2025-03-13)
+
+
+### Features
+
+* add event handling to workflows ([3510d36](https://github.com/vandetho/symflow/commit/3510d368f2c3e30905a6fc48bc45756b3d298e59))
+
+## [1.6.0](https://github.com/vandetho/symflow/compare/v1.5.0...v1.6.0) (2025-03-13)
+
+
+### Features
+
+* add metadata support to workflow events ([21787cd](https://github.com/vandetho/symflow/commit/21787cdcc11c8a7d7f62587c7487caeb85e2ea25))
+
+## [1.5.0](https://github.com/vandetho/symflow/compare/v1.4.0...v1.5.0) (2025-03-13)
+
+
+### Features
+
+* add guard functionality to block transitions ([fb58e55](https://github.com/vandetho/symflow/commit/fb58e55a29df1d11c1ac7cdfbb871c17b1329676))
+* add optional guards to transition checks ([ebc9e84](https://github.com/vandetho/symflow/commit/ebc9e84f9449984131168a29b569d0f004a264b6))
+
 ## [1.4.0](https://github.com/vandetho/symflow/compare/v1.3.0...v1.4.0) (2025-03-13)
 
 

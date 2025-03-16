@@ -1,6 +1,6 @@
-# **SymFlow: A Flexible Workflow Engine for Node.js**
+# **Symflow: A Flexible Workflow Engine for Node.js**
 
-**SymFlow** is a powerful **workflow and state machine engine** for **Node.js**, inspired by **Symfony Workflow**.  
+**Symflow** is a powerful **workflow and state machine engine** for **Node.js**, inspired by **Symfony Workflow**.  
 It allows you to define **workflows**, transition **entities between states**, and optionally **log audit trails**.
 
 > ✅ **Works like Sequelize models or Mongoose schemas**  
@@ -12,8 +12,9 @@ It allows you to define **workflows**, transition **entities between states**, a
 ## Table of Contents
 - [📦 Introduction](#-installation)
 - [🚀 Getting Started](#-getting-started)
-- [⚡ Using SymFlow with Express.js](#-using-symflow-with-expressjs)
+- [⚡ Using Symflow with Express.js](#-using-symflow-with-expressjs)
 - [📜 Features](#-features)
+- [🔥 Event Handling in Symflow](#-event-handling-in-symflow)
 - [📚 API Reference](#-api-reference)
 - [📌 Roadmap](#-roadmap)
 - [📜 License](#-license)
@@ -38,23 +39,39 @@ You can **define a workflow** like a Sequelize model or Mongoose schema.
 
 📂 **`src/workflows/order.workflow.ts`**
 ```typescript
-import { SymFlow } from "symflow";
+import { Symflow } from 'symflow';
 
-export const OrderWorkflow = new SymFlow({
-    name: "order",
+export const OrderWorkflow = new Symflow({
+    name: 'order',
     auditTrail: { enabled: true },
-    stateField: "state",
-    initialState: ["draft"],
+    stateField: 'state',
+    initialState: ['draft'],
     places: {
         draft: {},
         pending: {},
         confirmed: {},
     },
     transitions: {
-        initiate: { from: ["draft"], to: ["pending"] },
-        confirm: { from: ["pending"], to: ["confirmed"] },
+        initiate: { from: ['draft'], to: ['pending'] },
+        confirm: { from: ['pending'], to: ['confirmed'] },
+    }, 
+    events: {
+        [WorkflowEventType.GUARD]: [
+            (event) => {
+                if (event.entity.userRole !== 'admin') {
+                    console.log('❌ Access Denied: Only admins can approve orders.');
+                    return false;
+                }
+                return true;
+            },
+        ],
+        [WorkflowEventType.COMPLETED]: [
+            (event) => console.log(`✅ Order transitioned to ${event.toState}`),
+        ],
     },
 });
+
+
 ```
 
 ---
@@ -63,9 +80,9 @@ export const OrderWorkflow = new SymFlow({
 Once a workflow is defined, you can retrieve it from **anywhere** in your project.
 
 ```typescript
-import { SymFlow } from "symflow";
+import { Symflow } from "symflow";
 
-const workflow = SymFlow.use("order"); // Retrieve registered workflow
+const workflow = Symflow.use("order"); // Retrieve registered workflow
 
 const order = { id: 1, state: ["draft"] };
 
@@ -104,9 +121,9 @@ console.log(logs);
 
 ---
 
-## **⚡ Using SymFlow with Express.js**
+## **⚡ Using Symflow with Express.js**
 ### **📌 Setting Up Express API**
-SymFlow **does not require Express**, but you can integrate it into your Express.js project.
+Symflow **does not require Express**, but you can integrate it into your Express.js project.
 
 📂 **Project Structure**
 ```
@@ -122,7 +139,7 @@ SymFlow **does not require Express**, but you can integrate it into your Express
 ```typescript
 import express from "express";
 import bodyParser from "body-parser";
-import { SymFlow } from "symflow";
+import { Symflow } from "symflow";
 import { AuditTrail } from "symflow/audit-trail";
 import "./workflows/order.workflow"; // Ensures workflows are registered
 
@@ -136,7 +153,7 @@ const entities: Record<number, { id: number; state: string[] }> = {
 };
 
 // 🔹 Retrieve the registered workflow
-const orderWorkflow = SymFlow.use("order");
+const orderWorkflow = Symflow.use("order");
 
 app.get("/entities/:id", (req, res) => {
     const entityId = Number(req.params.id);
@@ -196,7 +213,7 @@ curl http://localhost:3000/entities/1/audit-trail
 ---
 
 ## **📚 API Reference**
-### **`new SymFlow(definition)`**
+### **`new Symflow(definition)`**
 - **Defines a new workflow** that can be used globally.
 
 ### **`new Workflow(definition)`**
@@ -239,10 +256,10 @@ Pull requests are welcome! Open an issue if you have feature requests.
 ---
 
 ## **⭐ Support**
-If you like **SymFlow**, give it a ⭐ on [GitHub](https://github.com/your-repo/symflow) and [npm](https://www.npmjs.com/package/symflow).
+If you like **Symflow**, give it a ⭐ on [GitHub](https://github.com/vandetho/symflow) and [npm](https://www.npmjs.com/package/symflow).
 
 ---
-🚀 **SymFlow – The Simple & Flexible Workflow Engine for Node.js!**
+🚀 **Symflow – The Simple & Flexible Workflow Engine for Node.js!**
 
 ---
 
@@ -257,6 +274,7 @@ A **workflow definition** consists of the following properties:
 | `initialState` | `string` or `string[]`                                 | The initial state(s) of the workflow.      |
 | `places`       | `Record<string, Place>`                                | A dictionary of valid places (states).     |
 | `transitions`  | `Record<string, Transition>`                           | A dictionary of allowed transitions.       |
+| `events`       | `Record<WorkflowEventType, WorkflowEventHandler<T>[]>` | Event listeners for workflow events.       |'
 
 ---
 
@@ -294,4 +312,90 @@ transitions: {
     confirm: { from: ["pending"], to: ["confirmed"], metadata: { action: "Admin confirms order" } }
 }
 ```
+
+---
+
+## **📜 Event Handling in Symflow**
+Symflow allows you to **hook into various workflow events** using event listeners.
+### 📌 **Available Events**
+| Event Type   | Description                                          |
+|--------------|------------------------------------------------------|
+| `ANNOUNCE`   | Fires **before** a transition begins.                |
+| `GUARD`      | **Prevents** transitions if conditions are not met.  |
+| `LEAVE`      | Fires **before leaving** a state.                    |
+| `ENTER`      | Fires **before entering** a state.                   |
+| `TRANSITION` | Fires **during** a transition.                       |
+| `COMPLETED`  | Fires **after** a transition successfully completes. |
+| `ENTERED`    | Fires **after** a state is successfully entered.     |
+
+## ✨ **Using Event Listeners**
+You can **register event listeners** to customize transition behavior.
+
+### 🛠 **Example: Blocking a Transition with `GUARD`**
+```typescript
+import { Symflow, WorkflowEventType } from "symflow";
+
+// Define the workflow
+const workflowDefinition = {
+    name: "order_workflow",
+    stateField: "status",
+    initialState: ["draft"],
+    places: { draft: {}, pending: {}, confirmed: {} },
+    transitions: { approve: { from: ["draft"], to: ["pending"] } }
+    /* or */
+    events: {
+        [WorkflowEventType.GUARD]: [
+            (event) => {
+                if (event.entity.userRole !== "admin") {
+                    console.log("❌ Access Denied: Only admins can approve orders.");
+                    return false;
+                }
+                return true;
+            },
+        ],
+    },
+};
+
+// Create a workflow instance
+const workflow = new Symflow(workflowDefinition);
+
+// Register a Guard event to prevent unauthorized transitions
+workflow.on(WorkflowEventType.GUARD, (event) => {
+    console.log(`Checking guard for transition "${event.transition}"`);
+    if (event.entity.userRole !== "admin") {
+        console.log("❌ Access Denied: Only admins can approve orders.");
+        return false; // 🚫 Prevent transition
+    }
+    return true;
+});
+
+// Sample order entity
+const order = { id: 1, status: ["draft"], userRole: "customer" };
+
+// Attempt transition
+workflow.apply(order, "approve").catch((err) => console.log(err.message));
+
+// Output: ❌ Access Denied: Only admins can approve orders.
+```
+---
+### 📜 **Metadata in Workflow Events**
+
+Metadata can be included in transitions and is accessible inside events.
+```typescript
+workflow.on(WorkflowEventType.COMPLETED, (event) => {
+    console.log(`✅ Transition "${event.transition}" completed!`);
+    console.log(`📌 Metadata:`, event.metadata); // ✅ Metadata is now accessible
+});
+```
+
+---
+
+### ✅ **Example: Logging Transitions with `COMPLETED`**
+You can use the `COMPLETED` event to **log successful state changes**.
+```typescript
+workflow.on(WorkflowEventType.COMPLETED, (event) => {
+    console.log(`✅ Order ${event.entity.id} successfully transitioned to ${event.toState}`);
+});
+```
+
 
