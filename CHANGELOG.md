@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/vandetho/symflow/compare/v1.8.0...v1.9.0) (2025-03-20)
+
+
+### Features
+
+* add core workflow and audit trail implementation ([6268eb6](https://github.com/vandetho/symflow/commit/6268eb6ef400480b4ddaf7415518e88e1b6a6b73))
+
 ## [1.8.0](https://github.com/vandetho/symflow/compare/v1.7.0...v1.8.0) (2025-03-13)
 
 
