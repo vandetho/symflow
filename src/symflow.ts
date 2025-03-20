@@ -167,12 +167,24 @@ export class Symflow<T extends Record<string, any>> {
             // **State Machine:** Always set a **single active state**
             entity[this.stateField] = (Array.isArray(newState) ? newState[0] : newState) as T[keyof T];
         } else {
-            // **Workflow:** Remove previous states unless explicitly kept
+            // **Workflow:** Keep only necessary states
+            const updatedStates = new Set<string>();
+
+            // Remove states that were part of `fromState`
+            fromState.forEach((state) => {
+                if (!this.transitions[transition].from.includes(state)) {
+                    updatedStates.add(state);
+                }
+            });
+
+            // Add new states
             if (Array.isArray(newState)) {
-                entity[this.stateField] = newState as T[keyof T];
+                newState.forEach((state) => updatedStates.add(state));
             } else {
-                entity[this.stateField] = [newState] as T[keyof T];
+                updatedStates.add(newState);
             }
+
+            entity[this.stateField] = [...updatedStates] as unknown as T[keyof T];
         }
 
         await this.triggerEvent(WorkflowEventType.TRANSITION, entity, transition, fromState, newState);
