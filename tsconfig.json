@@ -20,11 +20,10 @@
         "noFallthroughCasesInSwitch": false,
         "moduleResolution": "node",
         "preserveConstEnums": true,
-        "noLib": false
+        "noLib": false,
     },
     "include": [
-        "**/*.ts",
-        "**/*.mts",
+        "src/**/*.ts",
     ],
     "exclude": [
         "node_modules",

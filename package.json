@@ -2,7 +2,8 @@
     "name": "symflow",
     "version": "1.9.0",
     "description": "SymFlow is a powerful workflow and state machine engine for Node.js, inspired by Symfony Workflow. It allows you to define workflows, transition entities between states, and optionally log audit trails.",
-    "main": "index.js",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
         "lint": "eslint 'src//*.ts'",
@@ -49,10 +50,5 @@
         "ts-node": "^10.9.2",
         "typescript": "^5.8.2",
         "typescript-eslint": "^8.26.1"
-    },
-    "dependencies": {
-        "commander": "^13.1.0",
-        "fs-extra": "^11.3.0",
-        "js-yaml": "^4.1.0"
     }
 }
