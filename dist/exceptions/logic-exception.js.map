@@ -1,0 +1,1 @@
+{"version":3,"file":"logic-exception.js","sourceRoot":"","sources":["../../src/exceptions/logic-exception.ts"],"names":[],"mappings":";;;AAAA,MAAa,cAAe,SAAQ,KAAK;IACrC,YAAY,OAAe;QACvB,KAAK,CAAC,OAAO,CAAC,CAAC;QACf,IAAI,CAAC,IAAI,GAAG,gBAAgB,CAAC;IACjC,CAAC;CACJ;AALD,wCAKC"}
