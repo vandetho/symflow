@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.0](https://github.com/vandetho/symflow/compare/v1.10.0...v1.11.0) (2025-03-20)
+
+
+### Features
+
+* add new events and types to workflow exports ([4c372da](https://github.com/vandetho/symflow/commit/4c372dae9ae6754ba71bb13f7599df78ead55238))
+* remove all TypeScript definitions and compiled files ([8f3e1fb](https://github.com/vandetho/symflow/commit/8f3e1fb2dbcf31a3800090dbf1208e6ecb2ac84f))
+
 ## [1.10.0](https://github.com/vandetho/symflow/compare/v1.9.0...v1.10.0) (2025-03-20)
 
 
