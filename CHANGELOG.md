@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/vandetho/symflow/compare/v1.11.0...v1.12.0) (2025-03-20)
+
+
+### Features
+
+* **deps:** update dev dependencies and remove unused deps ([a615477](https://github.com/vandetho/symflow/commit/a615477becfe776e7bc95dad383079fa7f844418))
+
 ## [1.11.0](https://github.com/vandetho/symflow/compare/v1.10.0...v1.11.0) (2025-03-20)
 
 
