@@ -187,6 +187,10 @@ curl -X POST http://localhost:3000/entities/1/transition -H "Content-Type: appli
 curl http://localhost:3000/entities/1/audit-trail
 ```
 
+**Example**
+
+You can find a complete example of using **Symflow with Express.js** at: [Symflow-Express Example](https://github.com/vandetho/symflow-express)
+
 ---
 
 ## **📜 Features**
