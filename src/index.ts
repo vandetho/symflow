@@ -11,9 +11,10 @@ export {
     EnterEvent,
     EnteredEvent,
     GuardEvent,
+    WorkflowEvent,
 } from './event-workflow';
 export { StateMachine } from './state-machine';
 export { Symflow } from './symflow';
 export { Workflow } from './workflow';
-export { WorkflowDefinition, Place, Transition } from './workflow-definition';
+export { WorkflowDefinition, Place, Transition, WorkflowType, State } from './workflow-definition';
 export { loadWorkflowDefinition } from './workflow-loader';
