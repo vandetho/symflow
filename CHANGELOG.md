@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/vandetho/symflow/compare/v1.12.0...v1.13.0) (2025-03-20)
+
+
+### Features
+
+* enhance state management in workflow transitions ([83e17a2](https://github.com/vandetho/symflow/commit/83e17a22cd75252cb7aa2b31d19b7e104efa3386))
+
 ## [1.12.0](https://github.com/vandetho/symflow/compare/v1.11.0...v1.12.0) (2025-03-20)
 
 
