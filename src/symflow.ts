@@ -168,23 +168,27 @@ export class Symflow<T extends Record<string, any>> {
             entity[this.stateField] = (Array.isArray(newState) ? newState[0] : newState) as T[keyof T];
         } else {
             // **Workflow:** Keep only necessary states
-            const updatedStates = new Set<string>();
 
-            // Remove states that were part of `fromState`
-            fromState.forEach((state) => {
-                if (!this.transitions[transition].from.includes(state)) {
-                    updatedStates.add(state);
-                }
-            });
+            const fromStates = this.getFromStates(this.transitions[transition]);
+            const toStates = Array.isArray(newState) ? newState : [newState];
 
-            // Add new states
-            if (Array.isArray(newState)) {
-                newState.forEach((state) => updatedStates.add(state));
-            } else {
-                updatedStates.add(newState);
-            }
+            // Current states
+            const currentStates = this.getCurrentStates(entity);
 
-            entity[this.stateField] = [...updatedStates] as unknown as T[keyof T];
+            // Remove fromStates
+            let nextStates = currentStates.filter((state) => !fromStates.includes(state));
+
+            // Add toStates
+            nextStates = [...new Set([...nextStates, ...toStates])];
+
+            // 🔥 Remove any "leftover" states that are no longer part of the transition logic
+            const usedStates = Object.values(this.transitions).flatMap((t) =>
+                Array.isArray(t.from) ? t.from : [t.from],
+            );
+
+            nextStates = nextStates.filter((state) => !usedStates.includes(state) || toStates.includes(state));
+
+            entity[this.stateField] = nextStates as T[keyof T];
         }
 
         await this.triggerEvent(WorkflowEventType.TRANSITION, entity, transition, fromState, newState);
@@ -281,5 +285,27 @@ export class Symflow<T extends Record<string, any>> {
         }
 
         return mermaid;
+    }
+
+    /**
+     * Retrieves the `from` states of a transition.
+     */
+    private getFromStates(transition: Transition): string[] {
+        if (typeof transition.from === 'string') {
+            return [transition.from];
+        }
+
+        if (Array.isArray(transition.from)) {
+            return transition.from;
+        }
+
+        return [];
+    }
+
+    /**
+     * Retrieves the `to` states of a transition.
+     */
+    private getToStates(transition: Transition): string[] {
+        return Array.isArray(transition.to) ? transition.to : [transition.to];
     }
 }
