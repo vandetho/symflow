@@ -32,6 +32,20 @@ describe('State Machine Tests', () => {
         expect(orderEntity.state).toBe('draft');
     });
 
+    it('should instantiate correctly', () => {
+        const def: WorkflowDefinition<{ id: number; state: string }> = {
+            name: 'sm',
+            stateField: 'state',
+            initialState: 'init',
+            auditTrail: false,
+            places: { init: {}, done: {} },
+            transitions: { go: { from: 'init', to: 'done' } },
+        };
+
+        const sm = new StateMachine(def);
+        expect(sm).toBeInstanceOf(StateMachine);
+    });
+
     test('should retrieves all metadata', () => {
         expect(stateMachine.getMetadata()).toEqual({
             description: 'State Machine Test',

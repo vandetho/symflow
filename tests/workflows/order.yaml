@@ -1,0 +1,22 @@
+name:       order
+type:       workflow
+auditTrail:
+    enabled: false
+stateField: state
+initialState:
+    - draft
+places:
+    draft: { }
+    pending: { }
+    confirmed: { }
+transitions:
+    initiate:
+        from:
+            - draft
+        to:
+            - pending
+    confirm:
+        from:
+            - pending
+        to:
+            - confirmed

@@ -144,4 +144,29 @@ describe('Symflow - Manual and Automatic Workflow Loading', () => {
         expect(guardTriggered).toBe(true);
         expect(completedMessage).toBe('Transitioned to pending');
     });
+
+    it('should trigger guard and prevent transition', async () => {
+        const wf = new Symflow(manualWorkflowDefinition);
+        wf.on(WorkflowEventType.GUARD, () => false);
+
+        await expect(wf.apply({ id: 1, state: ['draft'] }, 'approve')).rejects.toThrow();
+    });
+
+    it('should prevent transition if canTransition fails even after guard', async () => {
+        const wf = new Symflow(manualWorkflowDefinition);
+        const entity = { id: 1, state: ['draft'] };
+
+        wf.on(WorkflowEventType.GUARD, () => true); // guard passes
+
+        // Remove the transition so canTransition will fail
+        (wf as any).transitions = {}; // forcefully clear
+
+        await expect(wf.apply(entity, 'approve')).rejects.toThrow(/not allowed/);
+    });
+
+    it('should render to graphviz and mermaid', () => {
+        const wf = new Symflow(manualWorkflowDefinition);
+        expect(wf.toGraphviz()).toMatch(/digraph/);
+        expect(wf.toMermaid()).toMatch(/graph TD/);
+    });
 });
