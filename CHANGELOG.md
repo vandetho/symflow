@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.0](https://github.com/vandetho/symflow/compare/v1.14.0...v1.15.0) (2025-03-22)
+
+
+### Features
+
+* improve StateMachine validation and state handling ([5df4e63](https://github.com/vandetho/symflow/commit/5df4e632d43987471a3a28bcb7c793340fee6e14))
+* **symflow:** refine state transition logic handling ([dfb9f82](https://github.com/vandetho/symflow/commit/dfb9f82943e9a709c7df2bddd004a256eeda8806))
+
 ## [1.14.0](https://github.com/vandetho/symflow/compare/v1.13.0...v1.14.0) (2025-03-21)
 
 
