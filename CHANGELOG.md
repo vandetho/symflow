@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.1](https://github.com/vandetho/symflow/compare/v1.15.0...v1.15.1) (2025-03-22)
+
+
+### Bug Fixes
+
+* optimize state handling and add new utility method ([ddb7137](https://github.com/vandetho/symflow/commit/ddb7137e61568cb4555878e77c756d4b41647553))
+
 ## [1.15.0](https://github.com/vandetho/symflow/compare/v1.14.0...v1.15.0) (2025-03-22)
 
 
