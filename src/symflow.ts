@@ -171,21 +171,13 @@ export class Symflow<T extends Record<string, any>> {
             const fromStates = this.getFromStates(this.transitions[transition]);
             const toStates = this.getToStates(this.transitions[transition]);
 
-            // Current states
+            // Get current state
             const currentStates = this.getCurrentStates(entity);
 
-            // Remove fromStates
-            let nextStates = currentStates.filter((state) => !fromStates.includes(state));
+            // Remove ONLY the from states
+            const keptStates = currentStates.filter((state) => !fromStates.includes(state));
 
-            // Add toStates
-            nextStates = [...new Set([...nextStates, ...toStates])];
-
-            // 🔥 Remove any "leftover" states that are no longer part of the transition logic
-            const usedStates = Object.values(this.transitions).flatMap((t) =>
-                Array.isArray(t.from) ? t.from : [t.from],
-            );
-
-            nextStates = nextStates.filter((state) => !usedStates.includes(state) || toStates.includes(state));
+            const nextStates = [...new Set([...keptStates, ...toStates])];
 
             entity[this.stateField] = nextStates as T[keyof T];
         }
