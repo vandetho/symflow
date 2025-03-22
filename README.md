@@ -1,5 +1,11 @@
 # **Symflow: A Flexible Workflow Engine for Node.js**
 
+[![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
+[![npm downloads](https://img.shields.io/npm/dw/symflow.svg)](https://www.npmjs.com/package/symflow)
+[![npm downloads](https://img.shields.io/npm/dm/symflow.svg)](https://www.npmjs.com/package/symflow)
+[![npm total downloads](https://img.shields.io/npm/dt/symflow.svg)](https://www.npmjs.com/package/symflow)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Symflow** is a powerful **workflow and state machine engine** for **Node.js**, inspired by **Symfony Workflow**.  
 It allows you to define **workflows**, transition **entities between states**, and optionally **log audit trails**.
 
