@@ -1,10 +1,13 @@
 # **Symflow: A Flexible Workflow Engine for Node.js**
 
+[![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
-[![npm downloads](https://img.shields.io/npm/dw/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![npm downloads](https://img.shields.io/npm/dm/symflow.svg)](https://www.npmjs.com/package/symflow)
-[![npm total downloads](https://img.shields.io/npm/dt/symflow.svg)](https://www.npmjs.com/package/symflow)
+[![GitHub stars](https://img.shields.io/github/stars/vandetho/symflow.svg?style=social)](https://github.com/vandetho/symflow/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/vandetho/symflow.svg?color=orange)](https://github.com/vandetho/symflow/issues)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+> 🔗 [View on npm »](https://www.npmjs.com/package/symflow)
 
 **Symflow** is a powerful **workflow and state machine engine** for **Node.js**, inspired by **Symfony Workflow**.  
 It allows you to define **workflows**, transition **entities between states**, and optionally **log audit trails**.
