@@ -1,10 +1,11 @@
 # **Symflow: A Flexible Workflow Engine for Node.js**
 
 [![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yaml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yaml)
-[![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
+[![npm downloads](https://img.shields.io/npm/dw/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![npm downloads](https://img.shields.io/npm/dm/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![GitHub stars](https://img.shields.io/github/stars/vandetho/symflow.svg?style=social)](https://github.com/vandetho/symflow/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/vandetho/symflow.svg?color=orange)](https://github.com/vandetho/symflow/issues)
+[![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 > 🔗 [View on npm »](https://www.npmjs.com/package/symflow)
