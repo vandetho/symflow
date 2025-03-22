@@ -16,6 +16,7 @@ export class Symflow<T extends Record<string, any>> {
     protected readonly auditEnabled: boolean; // 🔹 Per-workflow audit setting
     protected readonly workflowName: string; // 🔹 Unique name for audit logging
     protected readonly eventHandlers: Partial<Record<WorkflowEventType, WorkflowEventHandler<T>[]>> = {};
+    private readonly forkSiblingMap: Record<string, string[]> = {};
 
     constructor(workflow: WorkflowDefinition<T> | string) {
         const definition = typeof workflow === 'string' ? loadWorkflowDefinition<T>(workflow) : workflow;
@@ -36,6 +37,14 @@ export class Symflow<T extends Record<string, any>> {
                 WorkflowEventHandler<T>[],
             ][]) {
                 this.eventHandlers[eventType] = handlers;
+            }
+        }
+
+        for (const transition of Object.values(this.transitions)) {
+            if (Array.isArray(transition.to) && transition.to.length > 1) {
+                for (const to of transition.to) {
+                    this.forkSiblingMap[to] = transition.to.filter((s) => s !== to);
+                }
             }
         }
     }
@@ -164,17 +173,20 @@ export class Symflow<T extends Record<string, any>> {
         await this.triggerEvent(WorkflowEventType.ENTER, entity, transition, fromState, newState);
 
         if (this.isStateMachine) {
-            // **State Machine:** Always set a **single active state**
             entity[this.stateField] = (Array.isArray(newState) ? newState[0] : newState) as T[keyof T];
         } else {
-            // **Workflow:** Keep only necessary states
             const toStates = Array.isArray(newState) ? newState : [newState];
+            const currentStates = this.getCurrentStates(entity);
 
-            // Remove ALL known from states that lead to the same `to`
-            const allFromStates = this.getAllFromStatesLeadingTo(toStates);
+            // 🧠 Recursively find all from-states that lead to the current `to`
+            const fromStates = this.collectRecursiveFromStates(toStates);
 
-            const keptStates = this.getCurrentStates(entity).filter((state) => !allFromStates.includes(state));
+            // 🔥 Fork sibling cleanup
+            const forkSiblings = toStates.flatMap((to) => this.forkSiblingMap[to] || []);
 
+            // 🧹 Cleanup
+            const toRemove = new Set([...fromStates, ...forkSiblings]);
+            const keptStates = currentStates.filter((state) => !toRemove.has(state));
             const nextStates = [...new Set([...keptStates, ...toStates])];
 
             entity[this.stateField] = nextStates as T[keyof T];
@@ -277,45 +289,31 @@ export class Symflow<T extends Record<string, any>> {
     }
 
     /**
-     * Retrieves the `from` states of a transition.
+     * Retrieves all `from` states leading to the specified state(s).
+     * @param toStates Target state(s)
+     * @private
      */
-    private getFromStates(transition: Transition): string[] {
-        if (typeof transition.from === 'string') {
-            return [transition.from];
-        }
-
-        if (Array.isArray(transition.from)) {
-            return transition.from;
-        }
-
-        return [];
-    }
-
-    /**
-     * Retrieves all states leading to the specified state(s).
-     */
-    private getAllFromStatesLeadingTo(toStates: string | string[]): string[] {
-        const targetStates = new Set(Array.isArray(toStates) ? toStates : [toStates]);
+    private collectRecursiveFromStates(toStates: string[]): Set<string> {
         const allFromStates = new Set<string>();
         const visited = new Set<string>();
 
-        const findFromStates = (toState: string) => {
-            if (visited.has(toState)) return;
-            visited.add(toState);
+        const recurse = (currentTo: string) => {
+            if (visited.has(currentTo)) return;
+            visited.add(currentTo);
 
             for (const transition of Object.values(this.transitions)) {
-                const to = Array.isArray(transition.to) ? transition.to : [transition.to];
-                if (to.includes(toState)) {
-                    const from = this.getFromStates(transition);
+                const transitionTo = Array.isArray(transition.to) ? transition.to : [transition.to];
+                if (transitionTo.includes(currentTo)) {
+                    const from = Array.isArray(transition.from) ? transition.from : [transition.from];
                     from.forEach((f) => {
                         allFromStates.add(f);
-                        findFromStates(f); // Recurse
+                        recurse(f); // backtrack recursively
                     });
                 }
             }
         };
 
-        targetStates.forEach(findFromStates);
-        return Array.from(allFromStates);
+        toStates.forEach(recurse);
+        return allFromStates;
     }
 }
