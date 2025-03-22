@@ -1,6 +1,6 @@
 # **Symflow: A Flexible Workflow Engine for Node.js**
 
-[![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yml)
+[![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yaml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yaml)
 [![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![npm downloads](https://img.shields.io/npm/dm/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![GitHub stars](https://img.shields.io/github/stars/vandetho/symflow.svg?style=social)](https://github.com/vandetho/symflow/stargazers)
