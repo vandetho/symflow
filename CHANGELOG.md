@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.17.0](https://github.com/vandetho/symflow/compare/v1.16.0...v1.17.0) (2025-03-22)
+
+
+### Features
+
+* add CI workflow and update dependencies ([c2b0e2e](https://github.com/vandetho/symflow/commit/c2b0e2ed1c75f816c62402e202cfd1fd67004368))
+* add workflow definitions and enhance test coverage ([fa40e4c](https://github.com/vandetho/symflow/commit/fa40e4c04085bbce05af5f32becd8a7bd65ebd0b))
+* **ci:** relocate and rename CI configuration file ([8de13f4](https://github.com/vandetho/symflow/commit/8de13f4e21b60fef4af16ee9832fbb85a0a620c6))
+* enhance state management with fork sibling handling ([0df431b](https://github.com/vandetho/symflow/commit/0df431b8f36bcd2d011a511c533c9346777dc81d))
+
+
+### Bug Fixes
+
+* **ci:** remove unnecessary Codecov token usage ([f4ce824](https://github.com/vandetho/symflow/commit/f4ce8240f6902c31314ce710a4712b2bb9416785))
+
 ## [1.16.0](https://github.com/vandetho/symflow/compare/v1.15.2...v1.16.0) (2025-03-22)
 
 
