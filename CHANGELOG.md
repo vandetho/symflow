@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.16.0](https://github.com/vandetho/symflow/compare/v1.15.2...v1.16.0) (2025-03-22)
+
+
+### Features
+
+* add fork sibling cleanup and recursive state tracking ([709e7d7](https://github.com/vandetho/symflow/commit/709e7d7b93a5638d1586857f14f07c8dbd53eeea))
+* **README:** add badges for version, downloads, and license ([40fe17c](https://github.com/vandetho/symflow/commit/40fe17caef36745e6b7606eab67e624e18f436cd))
+
 ## [1.15.2](https://github.com/vandetho/symflow/compare/v1.15.1...v1.15.2) (2025-03-22)
 
 
