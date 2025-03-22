@@ -294,19 +294,28 @@ export class Symflow<T extends Record<string, any>> {
     /**
      * Retrieves all states leading to the specified state(s).
      */
-    private getAllFromStatesLeadingTo(toState: string | string[]): string[] {
-        const toStates = Array.isArray(toState) ? toState : [toState];
-        const fromStatesSet = new Set<string>();
+    private getAllFromStatesLeadingTo(toStates: string | string[]): string[] {
+        const targetStates = new Set(Array.isArray(toStates) ? toStates : [toStates]);
+        const allFromStates = new Set<string>();
+        const visited = new Set<string>();
 
-        Object.values(this.transitions).forEach((transition) => {
-            const transitionToStates = Array.isArray(transition.to) ? transition.to : [transition.to];
+        const findFromStates = (toState: string) => {
+            if (visited.has(toState)) return;
+            visited.add(toState);
 
-            if (transitionToStates.some((state) => toStates.includes(state))) {
-                const froms = this.getFromStates(transition);
-                froms.forEach((f) => fromStatesSet.add(f));
+            for (const transition of Object.values(this.transitions)) {
+                const to = Array.isArray(transition.to) ? transition.to : [transition.to];
+                if (to.includes(toState)) {
+                    const from = this.getFromStates(transition);
+                    from.forEach((f) => {
+                        allFromStates.add(f);
+                        findFromStates(f); // Recurse
+                    });
+                }
             }
-        });
+        };
 
-        return Array.from(fromStatesSet);
+        targetStates.forEach(findFromStates);
+        return Array.from(allFromStates);
     }
 }
