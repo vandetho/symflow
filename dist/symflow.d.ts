@@ -9,6 +9,7 @@ export declare class Symflow<T extends Record<string, any>> {
     protected readonly auditEnabled: boolean;
     protected readonly workflowName: string;
     protected readonly eventHandlers: Partial<Record<WorkflowEventType, WorkflowEventHandler<T>[]>>;
+    private readonly forkSiblingMap;
     constructor(workflow: WorkflowDefinition<T> | string);
     getMetadata(): Record<string, any>;
     getAvailableTransitions(entity: T): string[];
@@ -22,4 +23,5 @@ export declare class Symflow<T extends Record<string, any>> {
     private matchFromStates;
     toGraphviz(): string;
     toMermaid(): string;
+    private collectRecursiveFromStates;
 }

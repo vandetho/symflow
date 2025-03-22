@@ -17,6 +17,7 @@ class Symflow {
     constructor(workflow) {
         var _a, _b;
         this.eventHandlers = {};
+        this.forkSiblingMap = {};
         const definition = typeof workflow === 'string' ? (0, workflow_loader_1.loadWorkflowDefinition)(workflow) : workflow;
         this.metadata = definition.metadata || {};
         this.places = definition.places;
@@ -31,6 +32,13 @@ class Symflow {
         if (definition.events) {
             for (const [eventType, handlers] of Object.entries(definition.events)) {
                 this.eventHandlers[eventType] = handlers;
+            }
+        }
+        for (const transition of Object.values(this.transitions)) {
+            if (Array.isArray(transition.to) && transition.to.length > 1) {
+                for (const to of transition.to) {
+                    this.forkSiblingMap[to] = transition.to.filter((s) => s !== to);
+                }
             }
         }
     }
@@ -106,12 +114,14 @@ class Symflow {
                 entity[this.stateField] = (Array.isArray(newState) ? newState[0] : newState);
             }
             else {
-                if (Array.isArray(newState)) {
-                    entity[this.stateField] = newState;
-                }
-                else {
-                    entity[this.stateField] = [newState];
-                }
+                const toStates = Array.isArray(newState) ? newState : [newState];
+                const currentStates = this.getCurrentStates(entity);
+                const fromStates = this.collectRecursiveFromStates(toStates);
+                const forkSiblings = toStates.flatMap((to) => this.forkSiblingMap[to] || []);
+                const toRemove = new Set([...fromStates, ...forkSiblings]);
+                const keptStates = currentStates.filter((state) => !toRemove.has(state));
+                const nextStates = [...new Set([...keptStates, ...toStates])];
+                entity[this.stateField] = nextStates;
             }
             yield this.triggerEvent(event_workflow_1.WorkflowEventType.TRANSITION, entity, transition, fromState, newState);
             yield this.triggerEvent(event_workflow_1.WorkflowEventType.COMPLETED, entity, transition, fromState, newState);
@@ -172,6 +182,27 @@ class Symflow {
             });
         }
         return mermaid;
+    }
+    collectRecursiveFromStates(toStates) {
+        const allFromStates = new Set();
+        const visited = new Set();
+        const recurse = (currentTo) => {
+            if (visited.has(currentTo))
+                return;
+            visited.add(currentTo);
+            for (const transition of Object.values(this.transitions)) {
+                const transitionTo = Array.isArray(transition.to) ? transition.to : [transition.to];
+                if (transitionTo.includes(currentTo)) {
+                    const from = Array.isArray(transition.from) ? transition.from : [transition.from];
+                    from.forEach((f) => {
+                        allFromStates.add(f);
+                        recurse(f);
+                    });
+                }
+            }
+        };
+        toStates.forEach(recurse);
+        return allFromStates;
     }
 }
 exports.Symflow = Symflow;
