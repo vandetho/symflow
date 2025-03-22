@@ -168,9 +168,8 @@ export class Symflow<T extends Record<string, any>> {
             entity[this.stateField] = (Array.isArray(newState) ? newState[0] : newState) as T[keyof T];
         } else {
             // **Workflow:** Keep only necessary states
-
             const fromStates = this.getFromStates(this.transitions[transition]);
-            const toStates = Array.isArray(newState) ? newState : [newState];
+            const toStates = this.getToStates(this.transitions[transition]);
 
             // Current states
             const currentStates = this.getCurrentStates(entity);
