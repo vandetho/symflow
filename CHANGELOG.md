@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.2](https://github.com/vandetho/symflow/compare/v1.15.1...v1.15.2) (2025-03-22)
+
+
+### Bug Fixes
+
+* enhance state tracing in getAllFromStatesLeadingTo ([27d9654](https://github.com/vandetho/symflow/commit/27d965417bffa11f86af164f92699804a729de52))
+
 ## [1.15.1](https://github.com/vandetho/symflow/compare/v1.15.0...v1.15.1) (2025-03-22)
 
 
