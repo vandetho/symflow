@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.1](https://github.com/vandetho/symflow/compare/v1.17.0...v1.17.1) (2025-03-22)
+
+
+### Bug Fixes
+
+* **docs:** correct CI badge URL file extension in README ([090e006](https://github.com/vandetho/symflow/commit/090e0067cfa254c63f85a514d730bff8979def73))
+
 ## [1.17.0](https://github.com/vandetho/symflow/compare/v1.16.0...v1.17.0) (2025-03-22)
 
 
