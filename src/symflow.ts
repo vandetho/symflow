@@ -168,14 +168,12 @@ export class Symflow<T extends Record<string, any>> {
             entity[this.stateField] = (Array.isArray(newState) ? newState[0] : newState) as T[keyof T];
         } else {
             // **Workflow:** Keep only necessary states
-            const fromStates = this.getFromStates(this.transitions[transition]);
-            const toStates = this.getToStates(this.transitions[transition]);
+            const toStates = Array.isArray(newState) ? newState : [newState];
 
-            // Get current state
-            const currentStates = this.getCurrentStates(entity);
+            // Remove ALL known from states that lead to the same `to`
+            const allFromStates = this.getAllFromStatesLeadingTo(toStates);
 
-            // Remove ONLY the from states
-            const keptStates = currentStates.filter((state) => !fromStates.includes(state));
+            const keptStates = this.getCurrentStates(entity).filter((state) => !allFromStates.includes(state));
 
             const nextStates = [...new Set([...keptStates, ...toStates])];
 
@@ -294,9 +292,21 @@ export class Symflow<T extends Record<string, any>> {
     }
 
     /**
-     * Retrieves the `to` states of a transition.
+     * Retrieves all states leading to the specified state(s).
      */
-    private getToStates(transition: Transition): string[] {
-        return Array.isArray(transition.to) ? transition.to : [transition.to];
+    private getAllFromStatesLeadingTo(toState: string | string[]): string[] {
+        const toStates = Array.isArray(toState) ? toState : [toState];
+        const fromStatesSet = new Set<string>();
+
+        Object.values(this.transitions).forEach((transition) => {
+            const transitionToStates = Array.isArray(transition.to) ? transition.to : [transition.to];
+
+            if (transitionToStates.some((state) => toStates.includes(state))) {
+                const froms = this.getFromStates(transition);
+                froms.forEach((f) => fromStatesSet.add(f));
+            }
+        });
+
+        return Array.from(fromStatesSet);
     }
 }
