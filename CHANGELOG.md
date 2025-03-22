@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/vandetho/symflow/compare/v1.13.0...v1.14.0) (2025-03-21)
+
+
+### Features
+
+* refine state transitions with filtered next states ([b2bfeb9](https://github.com/vandetho/symflow/commit/b2bfeb9e82c0836b64527d35c7beb06c65e59ae9))
+
 ## [1.13.0](https://github.com/vandetho/symflow/compare/v1.12.0...v1.13.0) (2025-03-20)
 
 
