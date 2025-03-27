@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/vandetho/symflow/compare/v1.17.1...v1.18.0) (2025-03-27)
+
+
+### Features
+
+* integrate EventEmitter for workflow event handling ([5a554ef](https://github.com/vandetho/symflow/commit/5a554ef5c051b36a5f9aef50f21b4f397a55ddeb))
+
 ## [1.17.1](https://github.com/vandetho/symflow/compare/v1.17.0...v1.17.1) (2025-03-22)
 
 
