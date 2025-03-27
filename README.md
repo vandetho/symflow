@@ -1,10 +1,11 @@
 # **Symflow: A Flexible Workflow Engine for Node.js**
 
 [![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yaml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yaml)
-[![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
+[![npm downloads](https://img.shields.io/npm/dw/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![npm downloads](https://img.shields.io/npm/dm/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![GitHub stars](https://img.shields.io/github/stars/vandetho/symflow.svg?style=social)](https://github.com/vandetho/symflow/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/vandetho/symflow.svg?color=orange)](https://github.com/vandetho/symflow/issues)
+[![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 > 🔗 [View on npm »](https://www.npmjs.com/package/symflow)
@@ -223,7 +224,100 @@ You can find a complete example of using **Symflow with Express.js** at: [Symflo
 ### ✅ **Express.js API Support**
 - Works **optionally** with Express.js **without modifying the core package**.
 
+
 ---
+
+## **📜 Event Handling in Symflow**
+
+Symflow allows you to **hook into various workflow events** using event listeners.
+
+### 📌 **Available Events**
+| Event Type   | Description                                          |
+|--------------|------------------------------------------------------|
+| `ANNOUNCE`   | Fires **before** a transition begins.                |
+| `GUARD`      | **Prevents** transitions if conditions are not met.  |
+| `LEAVE`      | Fires **before leaving** a state.                    |
+| `ENTER`      | Fires **before entering** a state.                   |
+| `TRANSITION` | Fires **during** a transition.                       |
+| `COMPLETED`  | Fires **after** a transition successfully completes. |
+| `ENTERED`    | Fires **after** a state is successfully entered.     |
+
+## ✨ **Using Event Listeners**
+You can **register event listeners** to customize transition behavior.
+
+### 🛠 **Example: Blocking a Transition with `GUARD`**
+```typescript
+import { Symflow, WorkflowEventType } from "symflow";
+
+// Define the workflow
+const workflowDefinition = {
+    name: "order_workflow",
+    stateField: "status",
+    initialState: ["draft"],
+    places: { draft: {}, pending: {}, confirmed: {} },
+    transitions: { approve: { from: ["draft"], to: ["pending"] } },
+    /* or */
+    events: {
+        [WorkflowEventType.GUARD]: [
+            (event) => {
+                if (event.entity.userRole !== "admin") {
+                    console.log("❌ Access Denied: Only admins can approve orders.");
+                    return false;
+                }
+                return true;
+            },
+        ],
+    },
+};
+
+// Create a workflow instance
+const workflow = new Symflow(workflowDefinition);
+
+// Register a Guard event to prevent unauthorized transitions
+workflow.on(WorkflowEventType.GUARD, (event) => {
+    console.log(`Checking guard for transition "${event.transition}"`);
+    if (event.entity.userRole !== "admin") {
+        console.log("❌ Access Denied: Only admins can approve orders.");
+        return false; // 🚫 Prevent transition
+    }
+    return true;
+});
+
+// Sample order entity
+const order = { id: 1, status: ["draft"], userRole: "customer" };
+
+// Attempt transition
+workflow.apply(order, "approve").catch((err) => console.log(err.message));
+
+// Output: ❌ Access Denied: Only admins can approve orders.
+```
+---
+### 📜 **Metadata in Workflow Events**
+
+Metadata can be included in transitions and is accessible inside events.
+```typescript
+workflow.on(WorkflowEventType.COMPLETED, (event) => {
+    console.log(`✅ Transition "${event.transition}" completed!`);
+    console.log(`📌 Metadata:`, event.metadata); // ✅ Metadata is now accessible
+});
+```
+
+---
+
+### ✅ **Example: Logging Transitions with `COMPLETED`**
+You can use the `COMPLETED` event to **log successful state changes**.
+```typescript
+workflow.on(WorkflowEventType.COMPLETED, (event) => {
+    console.log(`✅ Order ${event.entity.id} successfully transitioned to ${event.toState}`);
+});
+```
+---
+### 📡 **EventEmitter Integration**
+Symflow supports emitting events via Node.js `EventEmitter` for full flexibility and code-splitting.
+[event-emitter.md](doc/event-emitter.md)
+
+---
+
 
 ## **📚 API Reference**
 ### **`new Symflow(definition)`**
@@ -326,89 +420,5 @@ transitions: {
 }
 ```
 
----
-
-## **📜 Event Handling in Symflow**
-Symflow allows you to **hook into various workflow events** using event listeners.
-### 📌 **Available Events**
-| Event Type   | Description                                          |
-|--------------|------------------------------------------------------|
-| `ANNOUNCE`   | Fires **before** a transition begins.                |
-| `GUARD`      | **Prevents** transitions if conditions are not met.  |
-| `LEAVE`      | Fires **before leaving** a state.                    |
-| `ENTER`      | Fires **before entering** a state.                   |
-| `TRANSITION` | Fires **during** a transition.                       |
-| `COMPLETED`  | Fires **after** a transition successfully completes. |
-| `ENTERED`    | Fires **after** a state is successfully entered.     |
-
-## ✨ **Using Event Listeners**
-You can **register event listeners** to customize transition behavior.
-
-### 🛠 **Example: Blocking a Transition with `GUARD`**
-```typescript
-import { Symflow, WorkflowEventType } from "symflow";
-
-// Define the workflow
-const workflowDefinition = {
-    name: "order_workflow",
-    stateField: "status",
-    initialState: ["draft"],
-    places: { draft: {}, pending: {}, confirmed: {} },
-    transitions: { approve: { from: ["draft"], to: ["pending"] } }
-    /* or */
-    events: {
-        [WorkflowEventType.GUARD]: [
-            (event) => {
-                if (event.entity.userRole !== "admin") {
-                    console.log("❌ Access Denied: Only admins can approve orders.");
-                    return false;
-                }
-                return true;
-            },
-        ],
-    },
-};
-
-// Create a workflow instance
-const workflow = new Symflow(workflowDefinition);
-
-// Register a Guard event to prevent unauthorized transitions
-workflow.on(WorkflowEventType.GUARD, (event) => {
-    console.log(`Checking guard for transition "${event.transition}"`);
-    if (event.entity.userRole !== "admin") {
-        console.log("❌ Access Denied: Only admins can approve orders.");
-        return false; // 🚫 Prevent transition
-    }
-    return true;
-});
-
-// Sample order entity
-const order = { id: 1, status: ["draft"], userRole: "customer" };
-
-// Attempt transition
-workflow.apply(order, "approve").catch((err) => console.log(err.message));
-
-// Output: ❌ Access Denied: Only admins can approve orders.
-```
----
-### 📜 **Metadata in Workflow Events**
-
-Metadata can be included in transitions and is accessible inside events.
-```typescript
-workflow.on(WorkflowEventType.COMPLETED, (event) => {
-    console.log(`✅ Transition "${event.transition}" completed!`);
-    console.log(`📌 Metadata:`, event.metadata); // ✅ Metadata is now accessible
-});
-```
-
----
-
-### ✅ **Example: Logging Transitions with `COMPLETED`**
-You can use the `COMPLETED` event to **log successful state changes**.
-```typescript
-workflow.on(WorkflowEventType.COMPLETED, (event) => {
-    console.log(`✅ Order ${event.entity.id} successfully transitioned to ${event.toState}`);
-});
-```
 
 
