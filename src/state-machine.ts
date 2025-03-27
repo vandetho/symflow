@@ -1,8 +1,9 @@
+import { EventEmitter } from 'events';
 import { Symflow } from './symflow';
 import { WorkflowDefinition } from './workflow-definition';
 
 export class StateMachine<T extends Record<string, any>> extends Symflow<T> {
-    constructor(definition: WorkflowDefinition<T>) {
+    constructor(definition: WorkflowDefinition<T>, emitter?: EventEmitter) {
         if (Array.isArray(definition.initialState)) {
             throw new Error('❌ StateMachine must have a string `initialState`, not an array.');
         }
@@ -13,6 +14,6 @@ export class StateMachine<T extends Record<string, any>> extends Symflow<T> {
             }
         }
 
-        super(definition);
+        super(definition, emitter);
     }
 }
