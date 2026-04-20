@@ -3,13 +3,46 @@ import type { WorkflowMeta, WorkflowType, MarkingStoreType } from "../types/work
 import { DEFAULT_WORKFLOW_META } from "../types/workflow";
 import type { WorkflowDefinition, Place, Transition } from "../engine/types";
 
+/**
+ * Custom YAML type for Symfony's `!php/const` tags.
+ * Extracts the constant short name (after `::`) or the full path if no `::`.
+ * e.g. `!php/const App\Workflow\State\BlogState::NEW_BLOG` → `"NEW_BLOG"`
+ */
+const phpConstType = new yaml.Type("!php/const", {
+    kind: "scalar",
+    resolve: () => true,
+    construct: (data: string) => {
+        if (typeof data !== "string") return data;
+        const idx = data.lastIndexOf("::");
+        return idx >= 0 ? data.slice(idx + 2) : data;
+    },
+});
+
+const SYMFONY_SCHEMA = yaml.DEFAULT_SCHEMA.extend([phpConstType]);
+
+/**
+ * Pre-processes YAML to resolve `!php/const` tags used as mapping keys.
+ * js-yaml cannot handle tagged scalars as implicit keys, so we resolve them
+ * before parsing. Keys like `!php/const App\Workflow\State\BlogState::NEW_BLOG:`
+ * become `NEW_BLOG:`.
+ */
+function preprocessPhpConstKeys(yamlString: string): string {
+    // Match !php/const used as a mapping key (line starts with optional whitespace,
+    // then the tag, value, and trailing colon)
+    return yamlString.replace(
+        /^(\s*)!php\/const\s+([^:\n]+?)::\s*(\S+)\s*:/gm,
+        "$1$3:",
+    );
+}
+
 export interface ImportResult {
     definition: WorkflowDefinition;
     meta: WorkflowMeta;
 }
 
 export function importWorkflowYaml(yamlString: string): ImportResult {
-    const parsed = yaml.load(yamlString) as Record<string, unknown>;
+    const preprocessed = preprocessPhpConstKeys(yamlString);
+    const parsed = yaml.load(preprocessed, { schema: SYMFONY_SCHEMA }) as Record<string, unknown>;
 
     let workflowName: string;
     let config: Record<string, unknown>;

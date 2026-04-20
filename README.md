@@ -534,6 +534,66 @@ engine.getActivePlaces(); // ["PUBLISHED"]
 
 This is Symfony's classic article review workflow. `CREATE_ARTICLE` is an AND-split that forks into parallel content and spelling checks. `PUBLISH` is an AND-join that requires both approvals before the article can be published.
 
+## State Machine Example: Blog Publishing
+
+Not every workflow needs parallel states. This blog publishing flow uses `type: state_machine` — exactly one state active at a time, with branching paths for approval and rejection.
+
+```mermaid
+flowchart LR
+    NEW_BLOG((NEW_BLOG))
+    t1{CREATE_BLOG}
+    CHECKING_CONTENT((CHECKING_CONTENT))
+    t2{VALID}
+    t3{INVALID}
+    NEED_REVIEW((NEED_REVIEW))
+    NEED_UPDATE((NEED_UPDATE))
+    t4{PUBLISH}
+    t5{REJECT}
+    t6{UPDATE}
+    t7{NEED_REVIEW}
+    PUBLISHED((PUBLISHED))
+
+    NEW_BLOG --> t1 --> CHECKING_CONTENT
+    CHECKING_CONTENT --> t2 --> NEED_REVIEW
+    CHECKING_CONTENT --> t3 --> NEED_UPDATE
+    NEED_REVIEW --> t4 --> PUBLISHED
+    NEED_REVIEW --> t5 --> NEED_UPDATE
+    NEED_UPDATE --> t6 --> NEED_REVIEW
+    PUBLISHED --> t7 --> NEED_REVIEW
+
+    style t1 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t2 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t3 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t4 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t5 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t6 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t7 fill:#f59e0b,color:#000,stroke:#f59e0b
+```
+
+This workflow uses Symfony's `!php/const` YAML tags to reference PHP constants. The symflow importer resolves them automatically — `!php/const App\Workflow\State\BlogState::NEW_BLOG` becomes `"NEW_BLOG"`.
+
+```ts
+import { readFileSync } from "fs";
+import { importWorkflowYaml } from "symflow/yaml";
+import { WorkflowEngine } from "symflow/engine";
+
+const yaml = readFileSync("blog_event.yaml", "utf8");
+const { definition } = importWorkflowYaml(yaml);
+const engine = new WorkflowEngine(definition);
+
+// Happy path
+engine.apply("CREATE_BLOG");
+engine.apply("VALID");
+engine.apply("PUBLISH");
+engine.getActivePlaces(); // ["PUBLISHED"]
+
+// Unpublish and update
+engine.apply("NEED_REVIEW");
+engine.apply("REJECT");
+engine.apply("UPDATE");
+engine.getActivePlaces(); // ["NEED_REVIEW"]
+```
+
 ## SymFlowBuilder
 
 [SymFlowBuilder](https://symflowbuilder.com) is the visual editor companion for this package. Use it to:
