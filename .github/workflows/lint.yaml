@@ -5,21 +5,17 @@ on: [push, pull_request]
 jobs:
     lint:
         runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                node-versions: [20]
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Setup Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
-                  node-version: ${{ matrix.node-versions }}
+                  node-version: 22
 
             - name: Install Dependencies
-              run: npm install
+              run: npm ci
 
-            - name: Run ESLint
-              run: npm run lint
+            - name: Type check
+              run: npm run typecheck

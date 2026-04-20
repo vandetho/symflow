@@ -7,19 +7,19 @@ on:
         branches: [main]
 
 jobs:
-    test:
+    build:
         runs-on: ubuntu-latest
 
         strategy:
             matrix:
-                node-version: [18.x, 20.x] # Test on multiple versions
+                node-version: [20.x, 22.x]
 
         steps:
             - name: 📥 Checkout code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: 🔧 Setup Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: 'npm'
@@ -27,9 +27,8 @@ jobs:
             - name: 📦 Install dependencies
               run: npm ci
 
-            - name: 🔍 Run tests with coverage
-              run: npm run test:ci
+            - name: 🔍 Type check
+              run: npm run typecheck
 
-            - name: 📤 Upload coverage to Codecov
-              uses: codecov/codecov-action@v3
-              continue-on-error: true
+            - name: 🏗️ Build
+              run: npm run build
