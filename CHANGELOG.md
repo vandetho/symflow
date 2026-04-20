@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/vandetho/symflow/compare/v2.3.0...v2.3.1) (2026-04-20)
+
+
+### Bug Fixes
+
+* use bot app token for release-please to trigger publish workflow ([08a2e32](https://github.com/vandetho/symflow/commit/08a2e321f2b9efbd1b187508be95f9e7c58f10fa))
+
 ## [2.3.0](https://github.com/vandetho/symflow/compare/v2.2.0...v2.3.0) (2026-04-20)
 
 
