@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/vandetho/symflow/compare/v2.2.0...v2.3.0) (2026-04-20)
+
+
+### Features
+
+* add !php/enum YAML tag support ([0652009](https://github.com/vandetho/symflow/commit/0652009449c9386974d0ddd2abdab544e1fbe37a))
+
 ## [2.2.0](https://github.com/vandetho/symflow/compare/v2.1.0...v2.2.0) (2026-04-20)
 
 
