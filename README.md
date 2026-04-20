@@ -1,8 +1,20 @@
-# @symflow/core
+# symflow
 
 A Symfony-compatible workflow engine for TypeScript and Node.js. Design state machines and Petri net workflows with the same semantics as Symfony's Workflow component — no PHP required.
 
 The engine has **zero runtime dependencies** and runs anywhere JavaScript runs: Node.js backends, serverless functions, CLI tools, or the browser.
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft
+    draft --> submitted: submit
+    submitted --> approved: approve
+    submitted --> rejected: reject
+    approved --> fulfilled: fulfill
+    fulfilled --> [*]
+```
+
+> Design workflows visually with [SymFlowBuilder](https://symflowbuilder.com/editor) — drag-and-drop states and transitions, test with the built-in simulator, then export to YAML, JSON, or TypeScript and run with `symflow` in production.
 
 ## Features
 
@@ -19,7 +31,7 @@ The engine has **zero runtime dependencies** and runs anywhere JavaScript runs: 
 ## Installation
 
 ```bash
-npm install @symflow/core
+npm install symflow
 ```
 
 ## Quick Start
@@ -29,7 +41,7 @@ import {
     WorkflowEngine,
     validateDefinition,
     type WorkflowDefinition,
-} from "@symflow/core/engine";
+} from "symflow/engine";
 
 const definition: WorkflowDefinition = {
     name: "order",
@@ -73,21 +85,21 @@ Pick only the subpath you need — most have zero dependencies.
 
 | Import                     | Contents                                             | Extra deps             |
 | -------------------------- | ---------------------------------------------------- | ---------------------- |
-| `@symflow/core/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types | none        |
-| `@symflow/core/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none |
-| `@symflow/core/yaml`       | Symfony YAML import/export                           | `js-yaml`              |
-| `@symflow/core/json`       | JSON import/export                                   | none                   |
-| `@symflow/core/typescript` | TypeScript codegen from a definition                 | none                   |
-| `@symflow/core/types`      | `WorkflowMeta`, `TransitionListener`, defaults       | none                   |
-| `@symflow/core/react-flow` | React Flow node/edge types, graph utilities           | `@xyflow/react` (peer) |
-| `@symflow/core`            | All of the above re-exported                         | all                    |
+| `symflow/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types | none        |
+| `symflow/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none |
+| `symflow/yaml`       | Symfony YAML import/export                           | `js-yaml`              |
+| `symflow/json`       | JSON import/export                                   | none                   |
+| `symflow/typescript` | TypeScript codegen from a definition                 | none                   |
+| `symflow/types`      | `WorkflowMeta`, `TransitionListener`, defaults       | none                   |
+| `symflow/react-flow` | React Flow node/edge types, graph utilities           | `@xyflow/react` (peer) |
+| `symflow`            | All of the above re-exported                         | all                    |
 
 ## Engine API
 
 ### `WorkflowEngine`
 
 ```ts
-import { WorkflowEngine } from "@symflow/core/engine";
+import { WorkflowEngine } from "symflow/engine";
 
 const engine = new WorkflowEngine(definition, {
     guardEvaluator: (expression, { marking, transition }) => {
@@ -191,7 +203,7 @@ engine.can("approve");
 Catch structural problems before creating an engine:
 
 ```ts
-import { validateDefinition } from "@symflow/core/engine";
+import { validateDefinition } from "symflow/engine";
 
 const result = validateDefinition(definition);
 
@@ -219,7 +231,7 @@ Detected issues:
 Detect structural patterns in your workflow:
 
 ```ts
-import { analyzeWorkflow } from "@symflow/core/engine";
+import { analyzeWorkflow } from "symflow/engine";
 
 const analysis = analyzeWorkflow(definition);
 
@@ -243,7 +255,7 @@ analysis.places["content_approved"].patterns;   // ["and-join"]
 For applications where workflow state lives on domain objects, the `Workflow<T>` class mirrors Symfony's `Workflow` service:
 
 ```ts
-import { createWorkflow, propertyMarkingStore } from "@symflow/core/subject";
+import { createWorkflow, propertyMarkingStore } from "symflow/subject";
 
 interface Invoice {
     id: string;
@@ -291,6 +303,18 @@ Implement `MarkingStore<T>` for custom storage (Prisma column, Redis, event-sour
 
 Use `type: "workflow"` to enable AND-split and AND-join patterns where multiple places are active simultaneously:
 
+```mermaid
+stateDiagram-v2
+    [*] --> draft
+    draft --> checking_content: start_review
+    draft --> checking_spelling: start_review
+    checking_content --> content_approved: approve_content
+    checking_spelling --> spelling_approved: approve_spelling
+    content_approved --> published: publish
+    spelling_approved --> published: publish
+    published --> [*]
+```
+
 ```ts
 const reviewWorkflow: WorkflowDefinition = {
     name: "article_review",
@@ -337,7 +361,7 @@ All formats round-trip the same `{ definition, meta }` shape.
 ### YAML (Symfony config)
 
 ```ts
-import { importWorkflowYaml, exportWorkflowYaml } from "@symflow/core/yaml";
+import { importWorkflowYaml, exportWorkflowYaml } from "symflow/yaml";
 
 const { definition, meta } = importWorkflowYaml(yamlString);
 const yaml = exportWorkflowYaml({ definition, meta });
@@ -346,7 +370,7 @@ const yaml = exportWorkflowYaml({ definition, meta });
 ### JSON
 
 ```ts
-import { importWorkflowJson, exportWorkflowJson } from "@symflow/core/json";
+import { importWorkflowJson, exportWorkflowJson } from "symflow/json";
 
 const { definition, meta } = importWorkflowJson(jsonString);
 const json = exportWorkflowJson({ definition, meta, indent: 2 });
@@ -357,13 +381,13 @@ const json = exportWorkflowJson({ definition, meta, indent: 2 });
 Emits a typed module you can write to disk and import like any other source file:
 
 ```ts
-import { exportWorkflowTs } from "@symflow/core/typescript";
+import { exportWorkflowTs } from "symflow/typescript";
 
 const ts = exportWorkflowTs({
     definition,
     meta,
     exportName: "order",        // -> orderDefinition, orderMeta
-    importFrom: "@symflow/core",
+    importFrom: "symflow",
 });
 fs.writeFileSync("workflows/order.ts", ts);
 ```
@@ -380,7 +404,7 @@ import {
     exportGraphToTs,
     autoLayoutNodes,
     buildDefinition,
-} from "@symflow/core/react-flow";
+} from "symflow/react-flow";
 
 // Import a Symfony YAML config into React Flow nodes/edges
 const { nodes, edges, meta } = importWorkflowYamlToGraph(yamlString);
@@ -392,6 +416,28 @@ const ts = exportGraphToTs({ nodes, edges, meta, exportName: "myFlow" });
 ```
 
 Requires `@xyflow/react` as a peer dependency.
+
+## SymFlowBuilder
+
+[SymFlowBuilder](https://symflowbuilder.com) is the visual editor companion for this package. Use it to:
+
+- **Design** workflows with drag-and-drop on an interactive canvas
+- **Simulate** — step through transitions, toggle guards, watch events fire
+- **Export** — generate production-ready Symfony YAML, JSON, or TypeScript
+- **Import** — paste existing Symfony YAML and edit it visually
+
+Workflows designed in SymFlowBuilder can be exported and used directly with `symflow`:
+
+```ts
+import { WorkflowEngine } from "symflow/engine";
+import { importWorkflowYaml } from "symflow/yaml";
+
+// Paste the YAML exported from SymFlowBuilder
+const { definition } = importWorkflowYaml(yamlFromSymFlowBuilder);
+const engine = new WorkflowEngine(definition);
+```
+
+Try it at [symflowbuilder.com/editor](https://symflowbuilder.com/editor).
 
 ## Symfony Parity
 
