@@ -39,14 +39,14 @@ describe("exportWorkflowTs", () => {
         const ts = exportWorkflowTs({
             definition: orderStateMachine,
             meta: orderMeta,
-            importFrom: "symflow",
+            importFrom: "@my-org/workflows",
         });
-        expect(ts).toContain('from "symflow"');
+        expect(ts).toContain('from "@my-org/workflows"');
     });
 
-    it("default import path is @symflow/core", () => {
+    it("default import path is symflow", () => {
         const ts = exportWorkflowTs({ definition: orderStateMachine, meta: orderMeta });
-        expect(ts).toContain('from "@symflow/core"');
+        expect(ts).toContain('from "symflow"');
     });
 
     it("includes definition data", () => {

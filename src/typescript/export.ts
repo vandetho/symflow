@@ -6,7 +6,7 @@ interface ExportOptions {
     meta: WorkflowMeta;
     /** Variable prefix used for the emitted exports. Defaults to `"workflow"`. */
     exportName?: string;
-    /** Module specifier the emitted file imports types from. Defaults to `"@symflow/core"`. */
+    /** Module specifier the emitted file imports types from. Defaults to `"symflow"`. */
     importFrom?: string;
 }
 
@@ -20,7 +20,7 @@ export function exportWorkflowTs({
     definition,
     meta,
     exportName = "workflow",
-    importFrom = "@symflow/core",
+    importFrom = "symflow",
 }: ExportOptions): string {
     const definitionLiteral = JSON.stringify(definition, null, 4);
     const metaLiteral = JSON.stringify(meta, null, 4);
