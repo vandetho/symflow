@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.2](https://github.com/vandetho/symflow/compare/v2.3.1...v2.3.2) (2026-04-20)
+
+
+### Bug Fixes
+
+* add symflowbuilder-release-bot to auto-merge actor check ([e8f4834](https://github.com/vandetho/symflow/commit/e8f48346d77c735468eefa83df88b098a93e0bf3))
+* use GITHUB_TOKEN for PR approval, bot token for merge ([5e70428](https://github.com/vandetho/symflow/commit/5e704282c8e42af1b1342f37e3b4e1d13336912e))
+
 ## [2.3.1](https://github.com/vandetho/symflow/compare/v2.3.0...v2.3.1) (2026-04-20)
 
 
