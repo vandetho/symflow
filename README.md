@@ -1,422 +1,404 @@
-# **Symflow: A Flexible Workflow Engine for Node.js**
+# @symflow/core
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yaml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yaml)
-[![npm downloads](https://img.shields.io/npm/dt/symflow.svg)](https://www.npmjs.com/package/symflow)
-[![GitHub stars](https://img.shields.io/github/stars/vandetho/symflow.svg?style=social)](https://github.com/vandetho/symflow/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/vandetho/symflow.svg?color=orange)](https://github.com/vandetho/symflow/issues)
-[![npm version](https://img.shields.io/npm/v/symflow.svg)](https://www.npmjs.com/package/symflow)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+A Symfony-compatible workflow engine for TypeScript and Node.js. Design state machines and Petri net workflows with the same semantics as Symfony's Workflow component — no PHP required.
 
-**Symflow** is a powerful **workflow and state machine engine** for **Node.js**, inspired by **Symfony Workflow**.  
-It allows you to define **workflows**, transition **entities between states**, and optionally **log audit trails**.
+The engine has **zero runtime dependencies** and runs anywhere JavaScript runs: Node.js backends, serverless functions, CLI tools, or the browser.
 
-> ✅ **Works like Sequelize models or Mongoose schemas**  
-> ✅ **Explicitly define workflows and retrieve them globally**  
-> ✅ **Supports event-driven transitions and audit trails**  
-> ✅ **No reliance on JSON or YAML configuration files**  
-> ✅ **Works with or without Express.js**  
+## Features
 
-## Table of Contents
-- [📦 Introduction](#-installation)
-- [🚀 Getting Started](#-getting-started)
-- [⚡ Using Symflow with Express.js](#-using-symflow-with-expressjs)
-- [📜 Features](#-features)
-- [🔥 Event Handling in Symflow](#-event-handling-in-symflow)
-- [📚 API Reference](#-api-reference)
-- [📌 Roadmap](#-roadmap)
-- [📜 License](#-license)
-- [🤝 Contributing](#-contributing)
-- [⭐ Support](#-support)
-- [📜 Workflow Definition Structure](#-workflow-definition-structure)
-- [📜 Place Structure](#-place-structure)
-- [📜 Transition Structure](#-transition-structure)
+- **Two workflow types** — `state_machine` (single active place) and `workflow` (Petri net with parallel states)
+- **Symfony event order** — `guard > leave > transition > enter > entered > completed > announce`
+- **Subject-driven API** — mirrors Symfony's `$workflow->apply($entity, 'submit')` pattern
+- **Marking stores** — `property` and `method` stores matching Symfony's options
+- **Pluggable guards** — bring your own expression evaluator
+- **Validation** — catches unreachable places, dead transitions, orphan places, invalid markings
+- **Pattern analysis** — detects AND-split, AND-join, OR-split, OR-join, XOR patterns
+- **YAML / JSON / TypeScript** — round-trip import and export for all formats
+- **React Flow adapter** — optional integration for visual editors
 
----
+## Installation
 
-## **📦 Installation**
-```sh
-npm install symflow
+```bash
+npm install @symflow/core
 ```
 
----
+## Quick Start
 
-## **🚀 Getting Started**
-### **1️⃣ Defining a Workflow**
-You can **define a workflow** like a Sequelize model or Mongoose schema.
+```ts
+import {
+    WorkflowEngine,
+    validateDefinition,
+    type WorkflowDefinition,
+} from "@symflow/core/engine";
 
-📂 **`src/workflows/order.workflow.ts`**
-```typescript
-import { Symflow } from 'symflow';
-
-export const OrderWorkflow = new Symflow({
-    name: 'order',
-    auditTrail: { enabled: true },
-    stateField: 'state',
-    initialState: ['draft'],
-    places: {
-        draft: {},
-        pending: {},
-        confirmed: {},
-    },
-    transitions: {
-        initiate: { from: ['draft'], to: ['pending'] },
-        confirm: { from: ['pending'], to: ['confirmed'] },
-    }, 
-    events: {
-        [WorkflowEventType.GUARD]: [
-            (event) => {
-                if (event.entity.userRole !== 'admin') {
-                    console.log('❌ Access Denied: Only admins can approve orders.');
-                    return false;
-                }
-                return true;
-            },
-        ],
-        [WorkflowEventType.COMPLETED]: [
-            (event) => console.log(`✅ Order transitioned to ${event.toState}`),
-        ],
-    },
-});
-
-
-```
-
----
-
-### **2️⃣ Retrieving a Workflow**
-Once a workflow is defined, you can retrieve it from **anywhere** in your project.
-
-```typescript
-import { Symflow } from "symflow";
-
-const workflow = Symflow.use("order"); // Retrieve registered workflow
-
-const order = { id: 1, state: ["draft"] };
-
-workflow.apply(order, "initiate");
-console.log(order.state); // Output: ["pending"]
-```
-
----
-
-### **3️⃣ Checking Available Transitions**
-```typescript
-const transitions = workflow.getAvailableTransitions(order);
-console.log(transitions); // Output: ["confirm"]
-```
-
----
-
-### **4️⃣ Applying a Transition**
-```typescript
-if (workflow.canTransition(order, "confirm")) {
-    workflow.apply(order, "confirm");
-}
-
-console.log(order.state); // Output: ["confirmed"]
-```
-
----
-
-### **5️⃣ Retrieve Audit Trail (if enabled)**
-```typescript
-import { AuditTrail } from "symflow/audit-trail";
-
-const logs = await AuditTrail.getAuditTrail("order", order.id);
-console.log(logs);
-```
-
----
-
-## **⚡ Using Symflow with Express.js**
-### **📌 Setting Up Express API**
-Symflow **does not require Express**, but you can integrate it into your Express.js project.
-
-📂 **Project Structure**
-```
-/your-express-app
-│── /src
-│   ├── server.ts      # Express server
-│   ├── workflows      # Folder for workflow definitions
-│   │   ├── order.workflow.ts
-│── package.json       # Your project's dependencies
-```
-
-✅ **Example API (`src/server.ts`)**
-```typescript
-import express from "express";
-import bodyParser from "body-parser";
-import { Symflow } from "symflow";
-import { AuditTrail } from "symflow/audit-trail";
-import "./workflows/order.workflow"; // Ensures workflows are registered
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(bodyParser.json());
-
-const entities: Record<number, { id: number; state: string[] }> = {
-    1: { id: 1, state: ["draft"] },
+const definition: WorkflowDefinition = {
+    name: "order",
+    type: "state_machine",
+    places: [
+        { name: "draft" },
+        { name: "submitted" },
+        { name: "approved" },
+        { name: "rejected" },
+        { name: "fulfilled" },
+    ],
+    transitions: [
+        { name: "submit", froms: ["draft"], tos: ["submitted"] },
+        { name: "approve", froms: ["submitted"], tos: ["approved"] },
+        { name: "reject", froms: ["submitted"], tos: ["rejected"] },
+        { name: "fulfill", froms: ["approved"], tos: ["fulfilled"] },
+    ],
+    initialMarking: ["draft"],
 };
 
-// 🔹 Retrieve the registered workflow
-const orderWorkflow = Symflow.use("order");
+// Validate first
+const { valid, errors } = validateDefinition(definition);
+if (!valid) throw new Error(errors.map((e) => e.message).join("\n"));
 
-app.get("/entities/:id", (req, res) => {
-    const entityId = Number(req.params.id);
-    res.json(entities[entityId]);
-});
+// Create engine and use it
+const engine = new WorkflowEngine(definition);
 
-app.post("/entities/:id/transition", async (req, res) => {
-    const entityId = Number(req.params.id);
-    const { transition } = req.body;
+engine.getActivePlaces();        // ["draft"]
+engine.getEnabledTransitions();  // [{ name: "submit", ... }]
 
-    if (!orderWorkflow.canTransition(entities[entityId], transition)) {
-        return res.status(400).json({ error: "Transition not allowed" });
-    }
+if (engine.can("submit").allowed) {
+    engine.apply("submit");
+}
 
-    await orderWorkflow.apply(entities[entityId], transition);
-    res.json({ message: "Transition applied", entity: entities[entityId] });
-});
-
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+engine.getActivePlaces();  // ["submitted"]
 ```
 
-✅ **Run the Express API**
-```sh
-npx ts-node src/server.ts
-```
+## Subpath Exports
 
-✅ **Test the API**
-```sh
-curl http://localhost:3000/entities/1
-curl -X POST http://localhost:3000/entities/1/transition -H "Content-Type: application/json" -d '{ "transition": "initiate" }'
-curl http://localhost:3000/entities/1/audit-trail
-```
+Pick only the subpath you need — most have zero dependencies.
 
-**Example**
+| Import                     | Contents                                             | Extra deps             |
+| -------------------------- | ---------------------------------------------------- | ---------------------- |
+| `@symflow/core/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types | none        |
+| `@symflow/core/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none |
+| `@symflow/core/yaml`       | Symfony YAML import/export                           | `js-yaml`              |
+| `@symflow/core/json`       | JSON import/export                                   | none                   |
+| `@symflow/core/typescript` | TypeScript codegen from a definition                 | none                   |
+| `@symflow/core/types`      | `WorkflowMeta`, `TransitionListener`, defaults       | none                   |
+| `@symflow/core/react-flow` | React Flow node/edge types, graph utilities           | `@xyflow/react` (peer) |
+| `@symflow/core`            | All of the above re-exported                         | all                    |
 
-You can find a complete example of using **Symflow with Express.js** at: [Symflow-Express Example](https://github.com/vandetho/symflow-express)
+## Engine API
 
----
+### `WorkflowEngine`
 
-## **📜 Features**
-### ✅ **Works Like Sequelize Models or Mongoose Schemas**
-- Workflows are explicitly defined and can be retrieved globally.
-- No automatic singleton behavior – workflows must be registered manually.
+```ts
+import { WorkflowEngine } from "@symflow/core/engine";
 
-### ✅ **State Machines & Workflows**
-- **State Machine**: Enforces a **single** active state.
-- **Workflow**: Allows **multiple** active states.
-
-### ✅ **Transition Logic**
-- Supports **AND/OR conditions** for complex transitions.
-
-### ✅ **Event-Driven Architecture**
-- Define external event listeners for transitions.
-
-### ✅ **Audit Trail**
-- Logs **state changes** to JSON files or a database.
-
-### ✅ **Express.js API Support**
-- Works **optionally** with Express.js **without modifying the core package**.
-
-
----
-
-## **📜 Event Handling in Symflow**
-
-Symflow allows you to **hook into various workflow events** using event listeners.
-
-### 📌 **Available Events**
-| Event Type   | Description                                          |
-|--------------|------------------------------------------------------|
-| `ANNOUNCE`   | Fires **before** a transition begins.                |
-| `GUARD`      | **Prevents** transitions if conditions are not met.  |
-| `LEAVE`      | Fires **before leaving** a state.                    |
-| `ENTER`      | Fires **before entering** a state.                   |
-| `TRANSITION` | Fires **during** a transition.                       |
-| `COMPLETED`  | Fires **after** a transition successfully completes. |
-| `ENTERED`    | Fires **after** a state is successfully entered.     |
-
-## ✨ **Using Event Listeners**
-You can **register event listeners** to customize transition behavior.
-
-### 🛠 **Example: Blocking a Transition with `GUARD`**
-```typescript
-import { Symflow, WorkflowEventType } from "symflow";
-
-// Define the workflow
-const workflowDefinition = {
-    name: "order_workflow",
-    stateField: "status",
-    initialState: ["draft"],
-    places: { draft: {}, pending: {}, confirmed: {} },
-    transitions: { approve: { from: ["draft"], to: ["pending"] } },
-    /* or */
-    events: {
-        [WorkflowEventType.GUARD]: [
-            (event) => {
-                if (event.entity.userRole !== "admin") {
-                    console.log("❌ Access Denied: Only admins can approve orders.");
-                    return false;
-                }
-                return true;
-            },
-        ],
+const engine = new WorkflowEngine(definition, {
+    guardEvaluator: (expression, { marking, transition }) => {
+        // return true to allow, false to block
+        return true;
     },
+});
+```
+
+| Method                       | Returns              | Description                                 |
+| ---------------------------- | -------------------- | ------------------------------------------- |
+| `getMarking()`               | `Marking`            | Current marking (place name to token count) |
+| `setMarking(marking)`        | `void`               | Override the current marking                |
+| `getInitialMarking()`        | `Marking`            | The initial marking from the definition     |
+| `getActivePlaces()`          | `string[]`           | Places with token count > 0                 |
+| `getEnabledTransitions()`    | `Transition[]`       | Transitions that can fire right now         |
+| `can(transitionName)`        | `TransitionResult`   | Check if a transition can fire              |
+| `apply(transitionName)`      | `Marking`            | Fire a transition (throws if blocked)       |
+| `reset()`                    | `void`               | Reset to initial marking                    |
+| `on(eventType, listener)`    | `() => void`         | Subscribe to events (returns unsubscribe)   |
+| `getDefinition()`            | `WorkflowDefinition` | The underlying definition                   |
+
+### `TransitionResult`
+
+`can()` returns structured feedback:
+
+```ts
+const result = engine.can("approve");
+
+if (!result.allowed) {
+    for (const blocker of result.blockers) {
+        console.log(blocker.code);    // "not_in_place" | "guard_blocked" | "unknown_transition" | "invalid_marking"
+        console.log(blocker.message); // human-readable explanation
+    }
+}
+```
+
+## Events
+
+The engine fires events in Symfony's exact order when `apply()` is called:
+
+| Order | Event        | When                                          |
+| ----- | ------------ | --------------------------------------------- |
+| 1     | `guard`      | Checks if the transition is allowed           |
+| 2     | `leave`      | Per source place, before tokens are removed   |
+| 3     | `transition` | After tokens are removed from source places   |
+| 4     | `enter`      | Per target place, before marking is updated   |
+| 5     | `entered`    | After marking is updated                      |
+| 6     | `completed`  | After the full transition is done             |
+| 7     | `announce`   | Per newly enabled transition                  |
+
+```ts
+engine.on("entered", (event) => {
+    console.log(event.type);          // "entered"
+    console.log(event.transition);    // { name, froms, tos, guard? }
+    console.log(event.marking);       // { draft: 0, submitted: 1, ... }
+    console.log(event.workflowName);  // "order"
+});
+
+// Unsubscribe
+const unsub = engine.on("guard", listener);
+unsub();
+```
+
+## Guards
+
+Attach guard expressions to transitions and provide an evaluator:
+
+```ts
+const definition: WorkflowDefinition = {
+    name: "order",
+    type: "state_machine",
+    places: [{ name: "submitted" }, { name: "approved" }],
+    transitions: [
+        {
+            name: "approve",
+            froms: ["submitted"],
+            tos: ["approved"],
+            guard: "subject.total < 10000",
+        },
+    ],
+    initialMarking: ["submitted"],
 };
 
-// Create a workflow instance
-const workflow = new Symflow(workflowDefinition);
+const engine = new WorkflowEngine(definition, {
+    guardEvaluator: (expression, { marking, transition }) => {
+        // Integrate any expression engine: expr-eval, jexl, custom logic
+        if (expression === "subject.total < 10000") {
+            return orderTotal < 10000;
+        }
+        return true;
+    },
+});
 
-// Register a Guard event to prevent unauthorized transitions
-workflow.on(WorkflowEventType.GUARD, (event) => {
-    console.log(`Checking guard for transition "${event.transition}"`);
-    if (event.entity.userRole !== "admin") {
-        console.log("❌ Access Denied: Only admins can approve orders.");
-        return false; // 🚫 Prevent transition
+engine.can("approve");
+// { allowed: false, blockers: [{ code: "guard_blocked", message: "..." }] }
+```
+
+## Validation
+
+Catch structural problems before creating an engine:
+
+```ts
+import { validateDefinition } from "@symflow/core/engine";
+
+const result = validateDefinition(definition);
+
+if (!result.valid) {
+    for (const error of result.errors) {
+        console.error(`[${error.type}] ${error.message}`);
     }
-    return true;
-});
-
-// Sample order entity
-const order = { id: 1, status: ["draft"], userRole: "customer" };
-
-// Attempt transition
-workflow.apply(order, "approve").catch((err) => console.log(err.message));
-
-// Output: ❌ Access Denied: Only admins can approve orders.
-```
----
-### 📜 **Metadata in Workflow Events**
-
-Metadata can be included in transitions and is accessible inside events.
-```typescript
-workflow.on(WorkflowEventType.COMPLETED, (event) => {
-    console.log(`✅ Transition "${event.transition}" completed!`);
-    console.log(`📌 Metadata:`, event.metadata); // ✅ Metadata is now accessible
-});
-```
-
----
-
-### ✅ **Example: Logging Transitions with `COMPLETED`**
-You can use the `COMPLETED` event to **log successful state changes**.
-```typescript
-workflow.on(WorkflowEventType.COMPLETED, (event) => {
-    console.log(`✅ Order ${event.entity.id} successfully transitioned to ${event.toState}`);
-});
-```
----
-### 📡 **EventEmitter Integration**
-Symflow supports emitting events via Node.js `EventEmitter` for full flexibility and code-splitting.
-[event-emitter.md](doc/event-emitter.md)
-
----
-
-
-## **📚 API Reference**
-### **`new Symflow(definition)`**
-- **Defines a new workflow** that can be used globally.
-
-### **`new Workflow(definition)`**
-- **Defines a new workflow** that can be used locally.
-
-### **`new StateMachine(definition)`**
-- **Defines a new state machine** that can be used locally.
-
-### **`workflow.canTransition(entity, transition)`**
-Returns `true` if the entity can transition.
-
-### **`workflow.getAvailableTransitions(entity)`**
-Returns a list of available transitions.
-
-### **`workflow.apply(entity, transition)`**
-Applies a state transition.
-
-### **`AuditTrail.getAuditTrail(workflowName, entityId)`**
-Retrieves past transitions.
-
----
-
-## **📌 Roadmap**
-🚀 **Upcoming Features**
-- [ ] **Database support for audit trails** (MongoDB, PostgreSQL)
-- [ ] **CLI Tool (`symflow list-workflows`)**
-- [ ] **Hot-reloading for workflow changes**
-- [ ] **Real-time WebSocket events**
-
----
-
-## **📜 License**
-MIT License. Free to use and modify.
-
----
-
-## **🤝 Contributing**
-Pull requests are welcome! Open an issue if you have feature requests.
-
----
-
-## **⭐ Support**
-If you like **Symflow**, give it a ⭐ on [GitHub](https://github.com/vandetho/symflow) and [npm](https://www.npmjs.com/package/symflow).
-
----
-🚀 **Symflow – The Simple & Flexible Workflow Engine for Node.js!**
-
----
-
-## **📜 Workflow Definition Structure**
-A **workflow definition** consists of the following properties:
-
-| Property       | Type                                                   | Description                                |
-|----------------|--------------------------------------------------------|--------------------------------------------|
-| `name`         | `string`                                               | Unique name for the workflow.              |
-| `auditTrail`   | `boolean`                    or `{ enabled: boolean }` | Enables or disables audit trail logging.   |
-| `stateField`   | `string`                                               | The field in the entity that tracks state. |
-| `initialState` | `string` or `string[]`                                 | The initial state(s) of the workflow.      |
-| `places`       | `Record<string, Place>`                                | A dictionary of valid places (states).     |
-| `transitions`  | `Record<string, Transition>`                           | A dictionary of allowed transitions.       |
-| `events`       | `Record<WorkflowEventType, WorkflowEventHandler<T>[]>` | Event listeners for workflow events.       |'
-
----
-
-## **📜 Place Structure**
-Each **place** (or state) in the workflow is defined as:
-
-| Property   | Type                             | Description                        |
-|------------|----------------------------------|------------------------------------|
-| `metadata` | `Record<string, any>` (optional) | Additional metadata for the place. |
-
-✅ **Example Place Definition:**
-```typescript
-places: {
-    draft: { metadata: { label: "Draft Order" } },
-    pending: { metadata: { label: "Awaiting Approval" } },
-    confirmed: { metadata: { label: "Confirmed Order" } }
 }
 ```
 
----
+Detected issues:
 
-## **📜 Transition Structure**
-Each **transition** defines how an entity moves between states.
+| Error type                  | Description                                           |
+| --------------------------- | ----------------------------------------------------- |
+| `no_initial_marking`        | No initial marking defined                            |
+| `invalid_initial_marking`   | Initial marking references a non-existent place       |
+| `invalid_transition_source` | Transition `from` references a non-existent place     |
+| `invalid_transition_target` | Transition `to` references a non-existent place       |
+| `unreachable_place`         | Place cannot be reached from the initial marking (BFS)|
+| `dead_transition`           | Transition can never fire (source places unreachable) |
+| `orphan_place`              | Place has no incoming or outgoing transitions         |
 
-| Property   | Type                             | Description                              |
-|------------|----------------------------------|------------------------------------------|
-| `from`     | `string` or `string[]`           | The state(s) the transition starts from. |
-| `to`       | `string` or `string[]`           | The state(s) the transition moves to.    |
-| `metadata` | `Record<string, any>` (optional) | Additional metadata for the transition.  |
+## Pattern Analysis
 
-✅ **Example Transition Definition:**
-```typescript
-transitions: {
-    initiate: { from: ["draft"], to: ["pending"], metadata: { action: "User submits order" } },
-    confirm: { from: ["pending"], to: ["confirmed"], metadata: { action: "Admin confirms order" } }
-}
+Detect structural patterns in your workflow:
+
+```ts
+import { analyzeWorkflow } from "@symflow/core/engine";
+
+const analysis = analyzeWorkflow(definition);
+
+// Transition patterns
+analysis.transitions["start_review"].pattern;  // "and-split"
+analysis.transitions["publish"].pattern;        // "and-join"
+
+// Place patterns
+analysis.places["review"].patterns;             // ["or-split"]
+analysis.places["content_approved"].patterns;   // ["and-join"]
 ```
 
+**Transition patterns:** `simple`, `and-split` (1 from, N to), `and-join` (N from, 1 to), `and-split-join` (N from, M to)
 
+**Place patterns (workflow type):** `simple`, `or-split`, `or-join`, `and-split`, `and-join`
 
+**Place patterns (state_machine type):** `simple`, `xor-split`, `xor-join`
+
+## Subject-Driven API
+
+For applications where workflow state lives on domain objects, the `Workflow<T>` class mirrors Symfony's `Workflow` service:
+
+```ts
+import { createWorkflow, propertyMarkingStore } from "@symflow/core/subject";
+
+interface Invoice {
+    id: string;
+    total: number;
+    currentState: string | string[];
+}
+
+const workflow = createWorkflow<Invoice>(definition, {
+    markingStore: propertyMarkingStore("currentState"),
+    guardEvaluator: (expression, { subject, marking, transition }) => {
+        if (expression === "subject.total < 10000") {
+            return subject.total < 10000;
+        }
+        return true;
+    },
+});
+
+const invoice: Invoice = { id: "inv_1", total: 500, currentState: "draft" };
+
+workflow.can(invoice, "submit");     // { allowed: true, blockers: [] }
+workflow.apply(invoice, "submit");   // reads + writes invoice.currentState
+console.log(invoice.currentState);   // "submitted"
+
+// Events include the subject
+workflow.on("entered", (event) => {
+    console.log(event.subject.id);        // "inv_1"
+    console.log(event.transition.name);   // "submit"
+});
+
+// Get enabled transitions for a subject
+workflow.getEnabledTransitions(invoice);  // [{ name: "approve", ... }, ...]
+```
+
+### Marking Stores
+
+| Store                               | Symfony equivalent | How it works                                            |
+| ----------------------------------- | ------------------ | ------------------------------------------------------- |
+| `propertyMarkingStore("field")`     | `type: property`   | Reads/writes `subject.field` directly                   |
+| `methodMarkingStore()`              | `type: method`     | Calls `subject.getMarking()` / `subject.setMarking(v)`  |
+| `methodMarkingStore({ getter, setter })` | `type: method` | Custom method names                                    |
+
+Implement `MarkingStore<T>` for custom storage (Prisma column, Redis, event-sourced aggregate, etc.).
+
+## Parallel Workflows (Petri Net)
+
+Use `type: "workflow"` to enable AND-split and AND-join patterns where multiple places are active simultaneously:
+
+```ts
+const reviewWorkflow: WorkflowDefinition = {
+    name: "article_review",
+    type: "workflow",
+    places: [
+        { name: "draft" },
+        { name: "checking_content" },
+        { name: "checking_spelling" },
+        { name: "content_approved" },
+        { name: "spelling_approved" },
+        { name: "published" },
+    ],
+    transitions: [
+        { name: "start_review", froms: ["draft"], tos: ["checking_content", "checking_spelling"] },
+        { name: "approve_content", froms: ["checking_content"], tos: ["content_approved"] },
+        { name: "approve_spelling", froms: ["checking_spelling"], tos: ["spelling_approved"] },
+        { name: "publish", froms: ["content_approved", "spelling_approved"], tos: ["published"] },
+    ],
+    initialMarking: ["draft"],
+};
+
+const engine = new WorkflowEngine(reviewWorkflow);
+
+engine.apply("start_review");
+engine.getActivePlaces();  // ["checking_content", "checking_spelling"]
+
+engine.apply("approve_content");
+engine.can("publish");     // { allowed: false } — spelling not approved yet
+
+engine.apply("approve_spelling");
+engine.can("publish");     // { allowed: true } — both paths complete
+engine.apply("publish");
+engine.getActivePlaces();  // ["published"]
+```
+
+Key difference between types:
+- **`state_machine`**: `from: [a, b]` means OR — current place must be one of them
+- **`workflow`**: `from: [a, b]` means AND — all listed places must have tokens
+
+## Persistence Formats
+
+All formats round-trip the same `{ definition, meta }` shape.
+
+### YAML (Symfony config)
+
+```ts
+import { importWorkflowYaml, exportWorkflowYaml } from "@symflow/core/yaml";
+
+const { definition, meta } = importWorkflowYaml(yamlString);
+const yaml = exportWorkflowYaml({ definition, meta });
+```
+
+### JSON
+
+```ts
+import { importWorkflowJson, exportWorkflowJson } from "@symflow/core/json";
+
+const { definition, meta } = importWorkflowJson(jsonString);
+const json = exportWorkflowJson({ definition, meta, indent: 2 });
+```
+
+### TypeScript codegen
+
+Emits a typed module you can write to disk and import like any other source file:
+
+```ts
+import { exportWorkflowTs } from "@symflow/core/typescript";
+
+const ts = exportWorkflowTs({
+    definition,
+    meta,
+    exportName: "order",        // -> orderDefinition, orderMeta
+    importFrom: "@symflow/core",
+});
+fs.writeFileSync("workflows/order.ts", ts);
+```
+
+## React Flow Adapter (optional)
+
+For visual editors built with React Flow:
+
+```ts
+import {
+    importWorkflowYamlToGraph,
+    exportGraphToYaml,
+    exportGraphToJson,
+    exportGraphToTs,
+    autoLayoutNodes,
+    buildDefinition,
+} from "@symflow/core/react-flow";
+
+// Import a Symfony YAML config into React Flow nodes/edges
+const { nodes, edges, meta } = importWorkflowYamlToGraph(yamlString);
+
+// Export back
+const yaml = exportGraphToYaml({ nodes, edges, meta });
+const json = exportGraphToJson({ nodes, edges, meta });
+const ts = exportGraphToTs({ nodes, edges, meta, exportName: "myFlow" });
+```
+
+Requires `@xyflow/react` as a peer dependency.
+
+## Symfony Parity
+
+**Matches:** `Definition`, `Marking`, `Transition`, `can()`, `apply()`, `getEnabledTransitions()`, event order (`guard > leave > transition > enter > entered > completed > announce`), `state_machine` vs `workflow` semantics, `property` and `method` marking stores, pluggable guard evaluator.
+
+**Not included:** `ExpressionLanguage` (bring your own via `guardEvaluator`), Graphviz dumper, weighted arcs.
+
+## License
+
+MIT

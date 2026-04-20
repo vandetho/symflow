@@ -1,4 +1,10 @@
-import yaml from 'js-yaml';
+'use strict';
+
+var yaml = require('js-yaml');
+
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+var yaml__default = /*#__PURE__*/_interopDefault(yaml);
 
 // src/types/workflow.ts
 var STATE_NAME_REGEX = /^[a-z][a-z0-9_]*$/;
@@ -498,7 +504,7 @@ function exportWorkflowYaml({ definition, meta }) {
       }
     }
   };
-  const raw = yaml.dump(output, {
+  const raw = yaml__default.default.dump(output, {
     indent: 4,
     lineWidth: 120,
     noRefs: true,
@@ -516,7 +522,7 @@ function exportWorkflowYaml({ definition, meta }) {
   );
 }
 function importWorkflowYaml(yamlString) {
-  const parsed = yaml.load(yamlString);
+  const parsed = yaml__default.default.load(yamlString);
   let workflowName;
   let config;
   if (parsed.framework) {
@@ -993,6 +999,27 @@ function exportGraphToTs(options) {
   });
 }
 
-export { DEFAULT_WORKFLOW_META, STATE_NAME_REGEX, Workflow, WorkflowEngine, analyzeWorkflow, autoLayoutNodes, buildDefinition, createWorkflow, exportGraphToJson, exportGraphToTs, exportGraphToYaml, exportWorkflowJson, exportWorkflowTs, exportWorkflowYaml, importWorkflowJson, importWorkflowJsonToGraph, importWorkflowYaml, importWorkflowYamlToGraph, methodMarkingStore, migrateGraphData, propertyMarkingStore, validateDefinition };
-//# sourceMappingURL=index.js.map
-//# sourceMappingURL=index.js.map
+exports.DEFAULT_WORKFLOW_META = DEFAULT_WORKFLOW_META;
+exports.STATE_NAME_REGEX = STATE_NAME_REGEX;
+exports.Workflow = Workflow;
+exports.WorkflowEngine = WorkflowEngine;
+exports.analyzeWorkflow = analyzeWorkflow;
+exports.autoLayoutNodes = autoLayoutNodes;
+exports.buildDefinition = buildDefinition;
+exports.createWorkflow = createWorkflow;
+exports.exportGraphToJson = exportGraphToJson;
+exports.exportGraphToTs = exportGraphToTs;
+exports.exportGraphToYaml = exportGraphToYaml;
+exports.exportWorkflowJson = exportWorkflowJson;
+exports.exportWorkflowTs = exportWorkflowTs;
+exports.exportWorkflowYaml = exportWorkflowYaml;
+exports.importWorkflowJson = importWorkflowJson;
+exports.importWorkflowJsonToGraph = importWorkflowJsonToGraph;
+exports.importWorkflowYaml = importWorkflowYaml;
+exports.importWorkflowYamlToGraph = importWorkflowYamlToGraph;
+exports.methodMarkingStore = methodMarkingStore;
+exports.migrateGraphData = migrateGraphData;
+exports.propertyMarkingStore = propertyMarkingStore;
+exports.validateDefinition = validateDefinition;
+//# sourceMappingURL=index.cjs.map
+//# sourceMappingURL=index.cjs.map
