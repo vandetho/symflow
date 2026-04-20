@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/vandetho/symflow/compare/v2.1.0...v2.2.0) (2026-04-20)
+
+
+### Features
+
+* add !php/const YAML support and blog state_machine example ([1eb07de](https://github.com/vandetho/symflow/commit/1eb07de174488b2c84dec9d970d44f9b9bb0f866))
+
 ## [2.1.0](https://github.com/vandetho/symflow/compare/v2.0.0...v2.1.0) (2026-04-20)
 
 
