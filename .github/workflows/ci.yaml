@@ -25,32 +25,15 @@ jobs:
             - run: npm test
             - run: npm run build
 
-    release:
+    release-please:
         needs: build
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         runs-on: ubuntu-latest
-        environment: release
         permissions:
             contents: write
             pull-requests: write
-            id-token: write
         steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 22
-                  registry-url: https://registry.npmjs.org/
-                  cache: npm
-            - run: npm ci
-            - run: npm run build
-            - name: Release Please
-              id: release
-              uses: googleapis/release-please-action@v4
+            - uses: googleapis/release-please-action@v4
               with:
                   release-type: node
                   token: ${{ secrets.GITHUB_TOKEN }}
-            - name: Publish to npm
-              if: steps.release.outputs.release_created == 'true'
-              run: npm publish --access public --provenance
