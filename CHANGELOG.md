@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.3](https://github.com/vandetho/symflow/compare/v2.3.2...v2.3.3) (2026-04-20)
+
+
+### Bug Fixes
+
+* change default TypeScript export import path from @symflow/core to symflow ([2b3dc60](https://github.com/vandetho/symflow/commit/2b3dc60c991fe772ab183f528a97048c54c0b7cf))
+
 ## [2.3.2](https://github.com/vandetho/symflow/compare/v2.3.1...v2.3.2) (2026-04-20)
 
 
