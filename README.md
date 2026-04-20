@@ -5,13 +5,26 @@ A Symfony-compatible workflow engine for TypeScript and Node.js. Design state ma
 The engine has **zero runtime dependencies** and runs anywhere JavaScript runs: Node.js backends, serverless functions, CLI tools, or the browser.
 
 ```mermaid
-stateDiagram-v2
-    [*] --> draft
-    draft --> submitted: submit
-    submitted --> approved: approve
-    submitted --> rejected: reject
-    approved --> fulfilled: fulfill
-    fulfilled --> [*]
+flowchart LR
+    draft((draft))
+    t1{submit}
+    submitted((submitted))
+    t2{approve}
+    t3{reject}
+    approved((approved))
+    rejected((rejected))
+    t4{fulfill}
+    fulfilled((fulfilled))
+
+    draft --> t1 --> submitted
+    submitted --> t2 --> approved
+    submitted --> t3 --> rejected
+    approved --> t4 --> fulfilled
+
+    style t1 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t2 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t3 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t4 fill:#f59e0b,color:#000,stroke:#f59e0b
 ```
 
 > Design workflows visually with [SymFlowBuilder](https://symflowbuilder.com/editor) — drag-and-drop states and transitions, test with the built-in simulator, then export to YAML, JSON, or TypeScript and run with `symflow` in production.
@@ -304,16 +317,34 @@ Implement `MarkingStore<T>` for custom storage (Prisma column, Redis, event-sour
 Use `type: "workflow"` to enable AND-split and AND-join patterns where multiple places are active simultaneously:
 
 ```mermaid
-stateDiagram-v2
-    [*] --> draft
-    draft --> checking_content: start_review
-    draft --> checking_spelling: start_review
-    checking_content --> content_approved: approve_content
-    checking_spelling --> spelling_approved: approve_spelling
-    content_approved --> published: publish
-    spelling_approved --> published: publish
-    published --> [*]
+flowchart LR
+    draft((draft))
+    t1{start_review}
+    checking_content((checking_content))
+    checking_spelling((checking_spelling))
+    t2{approve_content}
+    t3{approve_spelling}
+    content_approved((content_approved))
+    spelling_approved((spelling_approved))
+    t4{publish}
+    published((published))
+
+    draft --> t1
+    t1 --> checking_content
+    t1 --> checking_spelling
+    checking_content --> t2 --> content_approved
+    checking_spelling --> t3 --> spelling_approved
+    content_approved --> t4
+    spelling_approved --> t4
+    t4 --> published
+
+    style t1 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t2 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t3 fill:#f59e0b,color:#000,stroke:#f59e0b
+    style t4 fill:#f59e0b,color:#000,stroke:#f59e0b
 ```
+
+`start_review` is a single transition that forks into two parallel places. `publish` is a single transition that requires both paths to complete (AND-join).
 
 ```ts
 const reviewWorkflow: WorkflowDefinition = {
