@@ -10,7 +10,7 @@ import type { StateNodeData, TransitionNodeData } from "./types";
 export function buildDefinition(
     nodes: Node[],
     edges: Edge[],
-    meta: WorkflowMeta
+    meta: WorkflowMeta,
 ): WorkflowDefinition {
     const stateNodes = nodes.filter((n) => n.type === "state");
     const transitionNodes = nodes.filter((n) => n.type === "transition");

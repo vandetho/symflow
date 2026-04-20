@@ -62,9 +62,7 @@ export function methodMarkingStore<T>(options?: {
         write(subject, marking) {
             const setter = (subject as Record<string, unknown>)[setterName];
             if (typeof setter !== "function") {
-                throw new Error(
-                    `Subject is missing setter method "${setterName}(value)"`
-                );
+                throw new Error(`Subject is missing setter method "${setterName}(value)"`);
             }
             const active = Object.entries(marking)
                 .filter(([, count]) => count > 0)

@@ -1,9 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { WorkflowMeta } from "../../types/workflow";
-import {
-    importWorkflowYaml as importPure,
-    exportWorkflowYaml as exportPure,
-} from "../../yaml";
+import { importWorkflowYaml as importPure, exportWorkflowYaml as exportPure } from "../../yaml";
 import { buildDefinition } from "./definition-builder";
 import { autoLayoutNodes } from "./layout";
 import type { StateNodeData, TransitionNodeData } from "./types";
@@ -72,7 +69,7 @@ export function importWorkflowYamlToGraph(yamlString: string): ImportGraphResult
     const allNodes = [...stateNodes, ...transitionNodes];
 
     const statesThatAreSource = new Set(
-        edges.filter((e) => e.target.startsWith("transition-")).map((e) => e.source)
+        edges.filter((e) => e.target.startsWith("transition-")).map((e) => e.source),
     );
     for (const node of stateNodes) {
         if (!statesThatAreSource.has(node.id)) {

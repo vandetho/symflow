@@ -9,7 +9,7 @@ interface ExportOptions {
 
 export function exportWorkflowYaml({ definition, meta }: ExportOptions): string {
     const anyPlaceHasMetadata = definition.places.some(
-        (p) => p.metadata && Object.keys(p.metadata).length > 0
+        (p) => p.metadata && Object.keys(p.metadata).length > 0,
     );
 
     let places: unknown;
@@ -39,9 +39,7 @@ export function exportWorkflowYaml({ definition, meta }: ExportOptions): string 
     }
 
     const initialMarkingArr =
-        meta.initial_marking.length > 0
-            ? meta.initial_marking
-            : definition.initialMarking;
+        meta.initial_marking.length > 0 ? meta.initial_marking : definition.initialMarking;
     const initialMarking =
         initialMarkingArr.length === 1 ? initialMarkingArr[0] : initialMarkingArr;
 
@@ -82,6 +80,6 @@ export function exportWorkflowYaml({ definition, meta }: ExportOptions): string 
                 .filter((l) => l.trim().startsWith("- "))
                 .map((l) => l.trim().replace(/^- /, ""));
             return `${indent}${key}: [${values.join(", ")}]\n`;
-        }
+        },
     );
 }

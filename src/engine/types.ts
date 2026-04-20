@@ -90,7 +90,7 @@ export type WorkflowEventListener = (event: WorkflowEvent) => void;
 
 export type GuardEvaluator = (
     expression: string,
-    context: { marking: Marking; transition: Transition }
+    context: { marking: Marking; transition: Transition },
 ) => boolean;
 
 export type ValidationErrorType =

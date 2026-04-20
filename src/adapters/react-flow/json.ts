@@ -64,7 +64,7 @@ export function importWorkflowJsonToGraph(jsonString: string): ImportGraphResult
     const allNodes = [...stateNodes, ...transitionNodes];
 
     const statesThatAreSource = new Set(
-        edges.filter((e) => e.target.startsWith("transition-")).map((e) => e.source)
+        edges.filter((e) => e.target.startsWith("transition-")).map((e) => e.source),
     );
     for (const node of stateNodes) {
         if (!statesThatAreSource.has(node.id)) {

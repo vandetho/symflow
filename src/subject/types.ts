@@ -1,9 +1,4 @@
-import type {
-    Marking,
-    Transition,
-    WorkflowEvent,
-    WorkflowEventType,
-} from "../engine/types";
+import type { Marking, Transition, WorkflowEvent, WorkflowEventType } from "../engine/types";
 
 /**
  * Reads and writes a workflow's `Marking` onto a domain object (the "subject").
@@ -30,7 +25,7 @@ export interface SubjectGuardContext<T> {
 
 export type SubjectGuardEvaluator<T> = (
     expression: string,
-    context: SubjectGuardContext<T>
+    context: SubjectGuardContext<T>,
 ) => boolean;
 
 export type { Marking, Transition, WorkflowEvent, WorkflowEventType };

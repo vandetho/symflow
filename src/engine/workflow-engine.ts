@@ -19,10 +19,7 @@ export class WorkflowEngine {
     private guardEvaluator: GuardEvaluator;
     private placeNames: Set<string>;
 
-    constructor(
-        definition: WorkflowDefinition,
-        options?: { guardEvaluator?: GuardEvaluator }
-    ) {
+    constructor(definition: WorkflowDefinition, options?: { guardEvaluator?: GuardEvaluator }) {
         this.definition = definition;
         this.guardEvaluator = options?.guardEvaluator ?? defaultGuardEvaluator;
         this.placeNames = new Set(definition.places.map((p) => p.name));
@@ -72,9 +69,7 @@ export class WorkflowEngine {
 
     /** Check if a specific transition can fire */
     can(transitionName: string): TransitionResult {
-        const transition = this.definition.transitions.find(
-            (t) => t.name === transitionName
-        );
+        const transition = this.definition.transitions.find((t) => t.name === transitionName);
         if (!transition) {
             return {
                 allowed: false,
@@ -145,13 +140,11 @@ export class WorkflowEngine {
         const result = this.can(transitionName);
         if (!result.allowed) {
             throw new Error(
-                `Cannot apply transition "${transitionName}": ${result.blockers.map((b) => b.message).join(", ")}`
+                `Cannot apply transition "${transitionName}": ${result.blockers.map((b) => b.message).join(", ")}`,
             );
         }
 
-        const transition = this.definition.transitions.find(
-            (t) => t.name === transitionName
-        )!;
+        const transition = this.definition.transitions.find((t) => t.name === transitionName)!;
 
         // Fire events in Symfony order:
         // https://symfony.com/doc/current/workflow.html#using-events

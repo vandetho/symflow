@@ -57,6 +57,10 @@
         "build": "tsup",
         "dev": "tsup --watch",
         "typecheck": "tsc --noEmit",
+        "lint": "eslint src/",
+        "lint:fix": "eslint src/ --fix",
+        "format": "prettier --write 'src/**/*.ts'",
+        "format:check": "prettier --check 'src/**/*.ts'",
         "clean": "rm -rf dist",
         "prepublishOnly": "npm run build"
     },
@@ -97,7 +101,12 @@
     },
     "devDependencies": {
         "@types/js-yaml": "^4.0.9",
+        "@typescript-eslint/eslint-plugin": "^8.58.2",
+        "@typescript-eslint/parser": "^8.58.2",
         "@xyflow/react": "^12.10.2",
+        "eslint": "^10.2.1",
+        "eslint-config-prettier": "^10.1.8",
+        "prettier": "^3.8.3",
         "tsup": "^8.3.5",
         "typescript": "^5.9.3"
     }

@@ -22,10 +22,7 @@ export class Workflow<T> {
     readonly definition: WorkflowDefinition;
     private readonly markingStore: MarkingStore<T>;
     private readonly guardEvaluator?: SubjectGuardEvaluator<T>;
-    private readonly listeners = new Map<
-        WorkflowEventType,
-        Set<SubjectEventListener<T>>
-    >();
+    private readonly listeners = new Map<WorkflowEventType, Set<SubjectEventListener<T>>>();
 
     constructor(definition: WorkflowDefinition, options: CreateWorkflowOptions<T>) {
         this.definition = definition;
@@ -59,7 +56,7 @@ export class Workflow<T> {
                     for (const listener of listeners) {
                         listener({ ...event, subject });
                     }
-                })
+                }),
             );
         }
 
@@ -95,7 +92,7 @@ export class Workflow<T> {
 
 export function createWorkflow<T>(
     definition: WorkflowDefinition,
-    options: CreateWorkflowOptions<T>
+    options: CreateWorkflowOptions<T>,
 ): Workflow<T> {
     return new Workflow(definition, options);
 }

@@ -10,7 +10,7 @@ export function importWorkflowJson(jsonString: string): WorkflowJson {
         parsed = JSON.parse(jsonString);
     } catch (err) {
         throw new Error(
-            `Invalid workflow JSON: ${err instanceof Error ? err.message : String(err)}`
+            `Invalid workflow JSON: ${err instanceof Error ? err.message : String(err)}`,
         );
     }
 
@@ -30,7 +30,7 @@ export function importWorkflowJson(jsonString: string): WorkflowJson {
     }
     if (!Array.isArray(definition.places) || !Array.isArray(definition.transitions)) {
         throw new Error(
-            "Invalid workflow JSON: definition must have places and transitions arrays"
+            "Invalid workflow JSON: definition must have places and transitions arrays",
         );
     }
 

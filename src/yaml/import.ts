@@ -87,9 +87,7 @@ export function importWorkflowYaml(yamlString: string): ImportResult {
             const froms = Array.isArray(tcObj.from)
                 ? (tcObj.from as string[])
                 : [tcObj.from as string];
-            const tos = Array.isArray(tcObj.to)
-                ? (tcObj.to as string[])
-                : [tcObj.to as string];
+            const tos = Array.isArray(tcObj.to) ? (tcObj.to as string[]) : [tcObj.to as string];
             const transition: Transition = { name, froms, tos };
             if (tcObj.guard) transition.guard = tcObj.guard as string;
             if (tcObj.metadata) {

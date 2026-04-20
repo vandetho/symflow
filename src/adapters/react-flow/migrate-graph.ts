@@ -17,10 +17,7 @@ interface GraphData {
 export function migrateGraphData(data: GraphData): GraphData {
     // Detect old format: edges with type "transition" that have label data
     const oldEdges = data.edges.filter(
-        (e) =>
-            e.type === "transition" &&
-            e.data &&
-            "label" in (e.data as Record<string, unknown>)
+        (e) => e.type === "transition" && e.data && "label" in (e.data as Record<string, unknown>),
     );
 
     // Already in new format (no old-style transition edges)
@@ -77,13 +74,11 @@ export function migrateGraphData(data: GraphData): GraphData {
         const allConnected = [...fromNodes, ...toNodes];
         const midX =
             allConnected.length > 0
-                ? allConnected.reduce((sum, n) => sum + n!.position.x, 0) /
-                  allConnected.length
+                ? allConnected.reduce((sum, n) => sum + n!.position.x, 0) / allConnected.length
                 : 0;
         const midY =
             allConnected.length > 0
-                ? allConnected.reduce((sum, n) => sum + n!.position.y, 0) /
-                  allConnected.length
+                ? allConnected.reduce((sum, n) => sum + n!.position.y, 0) / allConnected.length
                 : 0;
 
         newNodes.push({

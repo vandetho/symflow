@@ -12,11 +12,7 @@ interface ExportOptions {
     indent?: number;
 }
 
-export function exportWorkflowJson({
-    definition,
-    meta,
-    indent = 2,
-}: ExportOptions): string {
+export function exportWorkflowJson({ definition, meta, indent = 2 }: ExportOptions): string {
     const payload: WorkflowJson = { definition, meta };
     return JSON.stringify(payload, null, indent);
 }
