@@ -448,6 +448,92 @@ const ts = exportGraphToTs({ nodes, edges, meta, exportName: "myFlow" });
 
 Requires `@xyflow/react` as a peer dependency.
 
+## Real-World Example: Symfony Article Workflow
+
+Here is the classic Symfony article review workflow — a real-world Petri net with parallel approval paths:
+
+```yaml
+framework:
+    workflows:
+        article_workflow:
+            type: 'workflow'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type:     'method'
+                property: 'marking'
+            supports:
+                - App\Entity\Article
+            initial_marking: NEW_ARTICLE
+            places:
+                NEW_ARTICLE:
+                CHECKING_CONTENT:
+                    metadata:
+                        bg_color: ORANGE
+                CONTENT_APPROVED:
+                    metadata:
+                        bg_color: DeepSkyBlue
+                CHECKING_SPELLING:
+                    metadata:
+                        bg_color: ORANGE
+                SPELLING_APPROVED:
+                    metadata:
+                        bg_color: DeepSkyBlue
+                PUBLISHED:
+                    metadata:
+                        bg_color: Lime
+            transitions:
+                CREATE_ARTICLE:
+                    from:
+                        - NEW_ARTICLE
+                    to:
+                        - CHECKING_CONTENT
+                        - CHECKING_SPELLING
+                APPROVE_SPELLING:
+                    from:
+                        - CHECKING_SPELLING
+                    to:
+                        - SPELLING_APPROVED
+                APPROVE_CONTENT:
+                    from:
+                        - CHECKING_CONTENT
+                    to:
+                        - CONTENT_APPROVED
+                PUBLISH:
+                    from:
+                        - CONTENT_APPROVED
+                        - SPELLING_APPROVED
+                    to:
+                        - PUBLISHED
+```
+
+Import and run it with symflow:
+
+```ts
+import { readFileSync } from "fs";
+import { importWorkflowYaml } from "symflow/yaml";
+import { WorkflowEngine } from "symflow/engine";
+import { validateDefinition } from "symflow/engine";
+
+const yaml = readFileSync("article_workflow.yaml", "utf8");
+const { definition } = importWorkflowYaml(yaml);
+
+// Validate
+const { valid, errors } = validateDefinition(definition);
+
+// Run
+const engine = new WorkflowEngine(definition);
+engine.apply("CREATE_ARTICLE");
+engine.getActivePlaces(); // ["CHECKING_CONTENT", "CHECKING_SPELLING"]
+
+engine.apply("APPROVE_CONTENT");
+engine.apply("APPROVE_SPELLING");
+engine.apply("PUBLISH");
+engine.getActivePlaces(); // ["PUBLISHED"]
+```
+
+This is Symfony's classic article review workflow. `CREATE_ARTICLE` is an AND-split that forks into parallel content and spelling checks. `PUBLISH` is an AND-join that requires both approvals before the article can be published.
+
 ## SymFlowBuilder
 
 [SymFlowBuilder](https://symflowbuilder.com) is the visual editor companion for this package. Use it to:
