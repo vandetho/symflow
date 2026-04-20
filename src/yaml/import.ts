@@ -29,10 +29,7 @@ const SYMFONY_SCHEMA = yaml.DEFAULT_SCHEMA.extend([phpConstType]);
 function preprocessPhpConstKeys(yamlString: string): string {
     // Match !php/const used as a mapping key (line starts with optional whitespace,
     // then the tag, value, and trailing colon)
-    return yamlString.replace(
-        /^(\s*)!php\/const\s+([^:\n]+?)::\s*(\S+)\s*:/gm,
-        "$1$3:",
-    );
+    return yamlString.replace(/^(\s*)!php\/const\s+([^:\n]+?)::\s*(\S+)\s*:/gm, "$1$3:");
 }
 
 export interface ImportResult {
