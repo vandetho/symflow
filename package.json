@@ -1,6 +1,6 @@
 {
     "name": "symflow",
-    "version": "2.3.1",
+    "version": "2.3.2",
     "description": "A Symfony-compatible workflow engine for TypeScript and Node.js. State machines, Petri nets, guards, events, validation, and YAML/JSON/TypeScript import/export.",
     "type": "module",
     "main": "./dist/index.cjs",
