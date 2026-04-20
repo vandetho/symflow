@@ -1,4 +1,4 @@
-# symflow
+# SymFlow
 
 A Symfony-compatible workflow engine for TypeScript and Node.js. Design state machines and Petri net workflows with the same semantics as Symfony's Workflow component — no PHP required.
 
