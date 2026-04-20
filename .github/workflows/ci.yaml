@@ -33,6 +33,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            id-token: write
         steps:
             - uses: actions/checkout@v4
               with:
@@ -52,6 +53,4 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
             - name: Publish to npm
               if: steps.release.outputs.release_created == 'true'
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: npm publish --access public --provenance
