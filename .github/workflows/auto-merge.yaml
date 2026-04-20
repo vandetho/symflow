@@ -6,7 +6,7 @@ on:
 
 jobs:
     auto-merge:
-        if: github.actor == 'release-please[bot]' || github.actor == 'dependabot[bot]'
+        if: github.actor == 'symflowbuilder-release-bot[bot]' || github.actor == 'release-please[bot]' || github.actor == 'dependabot[bot]'
         runs-on: ubuntu-latest
         steps:
             - name: Generate token
