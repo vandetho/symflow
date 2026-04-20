@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/vandetho/symflow/compare/v2.0.0...v2.1.0) (2026-04-20)
+
+
+### Features
+
+* add Symfony article workflow as example, test fixture, and docs ([2e33406](https://github.com/vandetho/symflow/commit/2e334066806302b4f756bbc2e28f76895c96e3c1))
+
 ## [2.0.0](https://github.com/vandetho/symflow/compare/v1.18.0...v2.0.0) (2026-04-20)
 
 
