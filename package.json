@@ -70,7 +70,9 @@
         "guards",
         "events",
         "yaml",
-        "typescript"
+        "typescript",
+        "mermaid",
+        "symflowbuilder"
     ],
     "author": {
         "name": "Vandeth Tho",
