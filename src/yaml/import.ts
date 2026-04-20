@@ -4,32 +4,46 @@ import { DEFAULT_WORKFLOW_META } from "../types/workflow";
 import type { WorkflowDefinition, Place, Transition } from "../engine/types";
 
 /**
+ * Resolves a PHP qualified name to its short name.
+ * `App\Workflow\State\BlogState::NEW_BLOG` → `"NEW_BLOG"`
+ * `App\Enum\Status::Active` → `"Active"`
+ * `PHP_INT_MAX` → `"PHP_INT_MAX"`
+ */
+function resolvePhpName(data: string): string {
+    if (typeof data !== "string") return data;
+    const idx = data.lastIndexOf("::");
+    return idx >= 0 ? data.slice(idx + 2) : data;
+}
+
+/**
  * Custom YAML type for Symfony's `!php/const` tags.
- * Extracts the constant short name (after `::`) or the full path if no `::`.
  * e.g. `!php/const App\Workflow\State\BlogState::NEW_BLOG` → `"NEW_BLOG"`
  */
 const phpConstType = new yaml.Type("!php/const", {
     kind: "scalar",
     resolve: () => true,
-    construct: (data: string) => {
-        if (typeof data !== "string") return data;
-        const idx = data.lastIndexOf("::");
-        return idx >= 0 ? data.slice(idx + 2) : data;
-    },
+    construct: resolvePhpName,
 });
 
-const SYMFONY_SCHEMA = yaml.DEFAULT_SCHEMA.extend([phpConstType]);
+/**
+ * Custom YAML type for Symfony's `!php/enum` tags (PHP 8.1+ backed enums).
+ * e.g. `!php/enum App\Enum\Status::Active` → `"Active"`
+ */
+const phpEnumType = new yaml.Type("!php/enum", {
+    kind: "scalar",
+    resolve: () => true,
+    construct: resolvePhpName,
+});
+
+const SYMFONY_SCHEMA = yaml.DEFAULT_SCHEMA.extend([phpConstType, phpEnumType]);
 
 /**
- * Pre-processes YAML to resolve `!php/const` tags used as mapping keys.
+ * Pre-processes YAML to resolve `!php/const` and `!php/enum` tags used as mapping keys.
  * js-yaml cannot handle tagged scalars as implicit keys, so we resolve them
- * before parsing. Keys like `!php/const App\Workflow\State\BlogState::NEW_BLOG:`
- * become `NEW_BLOG:`.
+ * before parsing. Keys like `!php/const App\...\BlogState::NEW_BLOG:` become `NEW_BLOG:`.
  */
-function preprocessPhpConstKeys(yamlString: string): string {
-    // Match !php/const used as a mapping key (line starts with optional whitespace,
-    // then the tag, value, and trailing colon)
-    return yamlString.replace(/^(\s*)!php\/const\s+([^:\n]+?)::\s*(\S+)\s*:/gm, "$1$3:");
+function preprocessPhpTaggedKeys(yamlString: string): string {
+    return yamlString.replace(/^(\s*)!php\/(?:const|enum)\s+([^:\n]+?)::\s*(\S+)\s*:/gm, "$1$3:");
 }
 
 export interface ImportResult {
@@ -38,7 +52,7 @@ export interface ImportResult {
 }
 
 export function importWorkflowYaml(yamlString: string): ImportResult {
-    const preprocessed = preprocessPhpConstKeys(yamlString);
+    const preprocessed = preprocessPhpTaggedKeys(yamlString);
     const parsed = yaml.load(preprocessed, { schema: SYMFONY_SCHEMA }) as Record<string, unknown>;
 
     let workflowName: string;

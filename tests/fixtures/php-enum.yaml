@@ -1,0 +1,45 @@
+framework:
+    workflows:
+        order:
+            type: 'state_machine'
+            marking_store:
+                type: 'method'
+                property: 'status'
+            supports:
+                - App\Entity\Order
+            initial_marking: !php/enum App\Enum\OrderStatus::New
+            places:
+                !php/enum App\Enum\OrderStatus::New:
+                !php/enum App\Enum\OrderStatus::Processing:
+                    metadata:
+                        bg_color: ORANGE
+                !php/enum App\Enum\OrderStatus::Shipped:
+                    metadata:
+                        bg_color: DeepSkyBlue
+                !php/enum App\Enum\OrderStatus::Delivered:
+                    metadata:
+                        bg_color: Lime
+                !php/enum App\Enum\OrderStatus::Cancelled:
+                    metadata:
+                        bg_color: Red
+            transitions:
+                !php/enum App\Enum\OrderTransition::Process:
+                    from:
+                        - !php/enum App\Enum\OrderStatus::New
+                    to:
+                        - !php/enum App\Enum\OrderStatus::Processing
+                !php/enum App\Enum\OrderTransition::Ship:
+                    from:
+                        - !php/enum App\Enum\OrderStatus::Processing
+                    to:
+                        - !php/enum App\Enum\OrderStatus::Shipped
+                !php/enum App\Enum\OrderTransition::Deliver:
+                    from:
+                        - !php/enum App\Enum\OrderStatus::Shipped
+                    to:
+                        - !php/enum App\Enum\OrderStatus::Delivered
+                !php/enum App\Enum\OrderTransition::Cancel:
+                    from:
+                        - !php/enum App\Enum\OrderStatus::New
+                    to:
+                        - !php/enum App\Enum\OrderStatus::Cancelled
