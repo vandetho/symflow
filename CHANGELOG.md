@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0](https://github.com/vandetho/symflow/compare/v2.3.4...v2.4.0) (2026-04-21)
+
+
+### Features
+
+* add Mermaid stateDiagram-v2 export ([f4594e8](https://github.com/vandetho/symflow/commit/f4594e88049405ce4409016024a59bdea143e7f9))
+
+
+### Bug Fixes
+
+* remove unused meta param in mermaid export ([68513a6](https://github.com/vandetho/symflow/commit/68513a672e5f0acc8f46955128374a5b7e39f50e))
+
 ## [2.3.4](https://github.com/vandetho/symflow/compare/v2.3.3...v2.3.4) (2026-04-21)
 
 
