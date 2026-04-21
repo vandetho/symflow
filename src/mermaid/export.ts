@@ -18,7 +18,7 @@ function sanitizeId(label: string): string {
  * Converts a WorkflowDefinition to Mermaid stateDiagram-v2 syntax.
  * Pure function — no side effects.
  */
-export function exportWorkflowMermaid({ definition, meta }: ExportOptions): string {
+export function exportWorkflowMermaid({ definition }: ExportOptions): string {
     const lines: string[] = [];
     lines.push("stateDiagram-v2");
     lines.push("    direction LR");
