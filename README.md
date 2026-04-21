@@ -1,8 +1,15 @@
 # SymFlow
 
+[![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yaml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yaml)
+[![npm](https://img.shields.io/npm/v/symflow)](https://www.npmjs.com/package/symflow)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/symflow)](https://socket.dev/npm/package/symflow)
+[![install size](https://packagephobia.com/badge?p=symflow)](https://packagephobia.com/result?p=symflow)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/symflow)](https://bundlephobia.com/package/symflow)
+[![downloads](https://img.shields.io/npm/dm/symflow)](https://npm-stat.com/charts.html?package=symflow)
+
 A Symfony-compatible workflow engine for TypeScript and Node.js. Design state machines and Petri net workflows with the same semantics as Symfony's Workflow component — no PHP required.
 
-The engine has **zero runtime dependencies** and runs anywhere JavaScript runs: Node.js backends, serverless functions, CLI tools, or the browser.
+The engine has **zero runtime dependencies** and runs anywhere JavaScript runs: Node.js backends, serverless functions, CLI tools, or the browser. The core engine is **~2.5 kB gzipped** — the full bundle with all formats is under 8 kB.
 
 ```mermaid
 flowchart LR
@@ -96,17 +103,17 @@ engine.getActivePlaces();  // ["submitted"]
 
 Pick only the subpath you need — most have zero dependencies.
 
-| Import                     | Contents                                             | Extra deps             |
-| -------------------------- | ---------------------------------------------------- | ---------------------- |
-| `symflow/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types | none        |
-| `symflow/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none |
-| `symflow/yaml`       | Symfony YAML import/export                           | `js-yaml`              |
-| `symflow/json`       | JSON import/export                                   | none                   |
-| `symflow/typescript` | TypeScript codegen from a definition                 | none                   |
-| `symflow/mermaid`    | Mermaid `stateDiagram-v2` export                     | none                   |
-| `symflow/types`      | `WorkflowMeta`, `TransitionListener`, defaults       | none                   |
-| `symflow/react-flow` | React Flow node/edge types, graph utilities           | `@xyflow/react` (peer) |
-| `symflow`            | All of the above re-exported                         | all                    |
+| Import                     | Contents                                             | Extra deps             | Size (gzip) |
+| -------------------------- | ---------------------------------------------------- | ---------------------- | ----------- |
+| `symflow/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types | none        | 2.5 kB      |
+| `symflow/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none | 2.2 kB      |
+| `symflow/yaml`       | Symfony YAML import/export                           | `js-yaml`              | 1.9 kB      |
+| `symflow/json`       | JSON import/export                                   | none                   | 0.5 kB      |
+| `symflow/typescript` | TypeScript codegen from a definition                 | none                   | 0.3 kB      |
+| `symflow/mermaid`    | Mermaid `stateDiagram-v2` export                     | none                   | 0.6 kB      |
+| `symflow/types`      | `WorkflowMeta`, `TransitionListener`, defaults       | none                   | 0.3 kB      |
+| `symflow/react-flow` | React Flow node/edge types, graph utilities           | `@xyflow/react` (peer) | 4.9 kB      |
+| `symflow`            | All of the above re-exported                         | all                    | 7.7 kB      |
 
 ## Engine API
 
