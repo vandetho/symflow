@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { WorkflowMeta } from "../../types/workflow";
+import type { WorkflowMeta } from '../../types';
 import { importWorkflowYaml as importPure, exportWorkflowYaml as exportPure } from "../../yaml";
 import { buildDefinition } from "./definition-builder";
 import { autoLayoutNodes } from "./layout";
@@ -13,7 +13,7 @@ export interface ImportGraphResult {
 
 /**
  * Parse a Symfony workflow YAML and produce an auto-laid-out React Flow graph.
- * Wraps the pure YAML importer and materialises the definition as nodes/edges.
+ * Wraps the pure YAML importer and materializes the definition as nodes/edges.
  */
 export function importWorkflowYamlToGraph(yamlString: string): ImportGraphResult {
     const { definition, meta } = importPure(yamlString);

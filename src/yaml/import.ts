@@ -1,7 +1,7 @@
 import yaml from "js-yaml";
-import type { WorkflowMeta, WorkflowType, MarkingStoreType } from "../types/workflow";
-import { DEFAULT_WORKFLOW_META } from "../types/workflow";
-import type { WorkflowDefinition, Place, Transition } from "../engine/types";
+import type { WorkflowMeta, WorkflowType, MarkingStoreType } from '../types';
+import { DEFAULT_WORKFLOW_META } from '../types';
+import type { WorkflowDefinition, Place, Transition } from '../engine';
 
 /**
  * Resolves a PHP qualified name to its short name.
@@ -10,7 +10,6 @@ import type { WorkflowDefinition, Place, Transition } from "../engine/types";
  * `PHP_INT_MAX` → `"PHP_INT_MAX"`
  */
 function resolvePhpName(data: string): string {
-    if (typeof data !== "string") return data;
     const idx = data.lastIndexOf("::");
     return idx >= 0 ? data.slice(idx + 2) : data;
 }

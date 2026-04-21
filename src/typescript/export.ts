@@ -1,5 +1,5 @@
-import type { WorkflowMeta } from "../types/workflow";
-import type { WorkflowDefinition } from "../engine/types";
+import type { WorkflowMeta } from '../types';
+import type { WorkflowDefinition } from '../engine';
 
 interface ExportOptions {
     definition: WorkflowDefinition;

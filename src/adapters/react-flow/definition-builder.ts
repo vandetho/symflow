@@ -1,6 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { WorkflowMeta } from "../../types/workflow";
-import type { WorkflowDefinition, Place, Transition } from "../../engine/types";
+import type { WorkflowMeta } from '../../types';
+import type { WorkflowDefinition, Place, Transition } from '../../engine';
 import type { StateNodeData, TransitionNodeData } from "./types";
 
 /**
