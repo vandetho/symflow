@@ -1,5 +1,5 @@
 import type { MarkingStore } from "./types";
-import type { Marking } from '../engine';
+import type { Marking } from "../engine";
 
 /**
  * Marking store that reads/writes a single property on the subject, holding

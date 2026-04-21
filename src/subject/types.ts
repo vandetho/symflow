@@ -1,4 +1,4 @@
-import type { Marking, Transition, WorkflowEvent, WorkflowEventType } from '../engine';
+import type { Marking, Transition, WorkflowEvent, WorkflowEventType } from "../engine";
 
 /**
  * Reads and writes a workflow's `Marking` onto a domain object (the "subject").

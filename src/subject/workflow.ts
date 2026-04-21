@@ -1,11 +1,11 @@
-import { WorkflowEngine } from '../engine';
+import { WorkflowEngine } from "../engine";
 import type {
     Marking,
     Transition,
     TransitionResult,
     WorkflowDefinition,
     WorkflowEventType,
-} from '../engine';
+} from "../engine";
 import type { MarkingStore, SubjectEventListener, SubjectGuardEvaluator } from "./types";
 
 export interface CreateWorkflowOptions<T> {

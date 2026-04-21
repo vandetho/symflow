@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { WorkflowMeta } from '../../types';
+import type { WorkflowMeta } from "../../types";
 import { importWorkflowYaml as importPure, exportWorkflowYaml as exportPure } from "../../yaml";
 import { buildDefinition } from "./definition-builder";
 import { autoLayoutNodes } from "./layout";

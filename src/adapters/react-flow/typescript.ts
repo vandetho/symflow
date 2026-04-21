@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { WorkflowMeta } from '../../types';
+import type { WorkflowMeta } from "../../types";
 import { exportWorkflowTs } from "../../typescript";
 import { buildDefinition } from "./definition-builder";
 

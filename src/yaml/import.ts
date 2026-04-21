@@ -1,7 +1,7 @@
 import yaml from "js-yaml";
-import type { WorkflowMeta, WorkflowType, MarkingStoreType } from '../types';
-import { DEFAULT_WORKFLOW_META } from '../types';
-import type { WorkflowDefinition, Place, Transition } from '../engine';
+import type { WorkflowMeta, WorkflowType, MarkingStoreType } from "../types";
+import { DEFAULT_WORKFLOW_META } from "../types";
+import type { WorkflowDefinition, Place, Transition } from "../engine";
 
 /**
  * Resolves a PHP qualified name to its short name.

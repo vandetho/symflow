@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { TransitionListener, WorkflowMeta } from '../../types';
+import type { TransitionListener, WorkflowMeta } from "../../types";
 
 export interface StateNodeData {
     label: string;
