@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.1](https://github.com/vandetho/symflow/compare/v2.4.0...v2.4.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* **ci:** add NPM_TOKEN to publish workflow ([0b07546](https://github.com/vandetho/symflow/commit/0b07546078d4cc5bc357127dab03e3b22a3ef5a6))
+
 ## [2.4.0](https://github.com/vandetho/symflow/compare/v2.3.4...v2.4.0) (2026-04-21)
 
 
