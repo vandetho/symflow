@@ -622,6 +622,35 @@ Try it at [symflowbuilder.com/editor](https://symflowbuilder.com/editor).
 
 **Not included:** `ExpressionLanguage` (bring your own via `guardEvaluator`), Graphviz dumper, weighted arcs.
 
+## Roadmap
+
+### Done
+
+- [x] `WorkflowEngine` with Symfony-compatible semantics
+- [x] `state_machine` and `workflow` (Petri net) types
+- [x] Event system (guard, leave, transition, enter, entered, completed, announce)
+- [x] Pluggable guard evaluator
+- [x] Subject-driven `Workflow<T>` API with marking stores
+- [x] `propertyMarkingStore` and `methodMarkingStore`
+- [x] Validation (unreachable places, dead transitions, orphan places)
+- [x] Pattern analysis (AND-split, AND-join, OR-split, XOR)
+- [x] YAML import/export (Symfony-compatible)
+- [x] JSON import/export
+- [x] TypeScript codegen export
+- [x] `!php/const` and `!php/enum` YAML tag support
+- [x] React Flow adapter (graph ↔ definition)
+
+### Planned
+
+- [ ] Expression language evaluator (built-in basic expression parser)
+- [ ] Weighted arcs (token counts > 1)
+- [ ] Named sub-events (`workflow.{name}.guard.{transition}`)
+- [ ] Graphviz / DOT export
+- [ ] Mermaid diagram export
+- [ ] Workflow composition (nested workflows)
+- [ ] Async transition support
+- [ ] Middleware / plugin system for custom event handling
+
 ## License
 
 MIT
