@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.4](https://github.com/vandetho/symflow/compare/v2.3.3...v2.3.4) (2026-04-21)
+
+
+### Bug Fixes
+
+* resolve prettier formatting issues in CI ([5b3741f](https://github.com/vandetho/symflow/commit/5b3741f3a5ebcc00766a79f79dfa87a6645e8c32))
+
 ## [2.3.3](https://github.com/vandetho/symflow/compare/v2.3.2...v2.3.3) (2026-04-20)
 
 
