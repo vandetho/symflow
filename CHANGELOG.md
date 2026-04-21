@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.2](https://github.com/vandetho/symflow/compare/v2.4.1...v2.4.2) (2026-04-21)
+
+
+### Bug Fixes
+
+* **ci:** switch publish workflow to OIDC trusted publishers ([daebc34](https://github.com/vandetho/symflow/commit/daebc34be70b6524a28be8d5065ee40370f1eeb0))
+
 ## [2.4.1](https://github.com/vandetho/symflow/compare/v2.4.0...v2.4.1) (2026-04-21)
 
 
