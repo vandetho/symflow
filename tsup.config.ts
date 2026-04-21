@@ -8,6 +8,7 @@ export default defineConfig({
         yaml: "src/yaml/index.ts",
         json: "src/json/index.ts",
         typescript: "src/typescript/index.ts",
+        mermaid: "src/mermaid/index.ts",
         types: "src/types/index.ts",
         "react-flow": "src/adapters/react-flow/index.ts",
     },

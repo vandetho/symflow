@@ -5,3 +5,4 @@ export * from "./migrate-graph";
 export * from "./yaml";
 export * from "./json";
 export * from "./typescript";
+export * from "./mermaid";

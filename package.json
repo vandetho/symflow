@@ -37,6 +37,11 @@
             "import": "./dist/typescript.js",
             "require": "./dist/typescript.cjs"
         },
+        "./mermaid": {
+            "types": "./dist/mermaid.d.ts",
+            "import": "./dist/mermaid.js",
+            "require": "./dist/mermaid.cjs"
+        },
         "./types": {
             "types": "./dist/types.d.ts",
             "import": "./dist/types.js",

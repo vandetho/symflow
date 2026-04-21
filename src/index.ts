@@ -4,4 +4,5 @@ export * from "./subject";
 export * from "./yaml";
 export * from "./json";
 export * from "./typescript";
+export * from "./mermaid";
 export * from "./adapters/react-flow";

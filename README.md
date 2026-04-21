@@ -27,7 +27,7 @@ flowchart LR
     style t4 fill:#f59e0b,color:#000,stroke:#f59e0b
 ```
 
-> Design workflows visually with [SymFlowBuilder](https://symflowbuilder.com/editor) — drag-and-drop states and transitions, test with the built-in simulator, then export to YAML, JSON, or TypeScript and run with `symflow` in production.
+> Design workflows visually with [SymFlowBuilder](https://symflowbuilder.com/editor) — drag-and-drop states and transitions, test with the built-in simulator, then export to YAML, JSON, TypeScript, or Mermaid and run with `symflow` in production.
 
 ## Features
 
@@ -38,7 +38,7 @@ flowchart LR
 - **Pluggable guards** — bring your own expression evaluator
 - **Validation** — catches unreachable places, dead transitions, orphan places, invalid markings
 - **Pattern analysis** — detects AND-split, AND-join, OR-split, OR-join, XOR patterns
-- **YAML / JSON / TypeScript** — round-trip import and export for all formats
+- **YAML / JSON / TypeScript / Mermaid** — round-trip import and export for all formats, plus Mermaid `stateDiagram-v2` diagram export
 - **React Flow adapter** — optional integration for visual editors
 
 ## Installation
@@ -103,6 +103,7 @@ Pick only the subpath you need — most have zero dependencies.
 | `symflow/yaml`       | Symfony YAML import/export                           | `js-yaml`              |
 | `symflow/json`       | JSON import/export                                   | none                   |
 | `symflow/typescript` | TypeScript codegen from a definition                 | none                   |
+| `symflow/mermaid`    | Mermaid `stateDiagram-v2` export                     | none                   |
 | `symflow/types`      | `WorkflowMeta`, `TransitionListener`, defaults       | none                   |
 | `symflow/react-flow` | React Flow node/edge types, graph utilities           | `@xyflow/react` (peer) |
 | `symflow`            | All of the above re-exported                         | all                    |
@@ -423,6 +424,22 @@ const ts = exportWorkflowTs({
 fs.writeFileSync("workflows/order.ts", ts);
 ```
 
+### Mermaid diagram
+
+Generates a `stateDiagram-v2` diagram you can paste into GitHub Markdown, Notion, or any Mermaid renderer:
+
+```ts
+import { exportWorkflowMermaid } from "symflow/mermaid";
+
+const mmd = exportWorkflowMermaid({ definition, meta });
+// stateDiagram-v2
+//     direction LR
+//     [*] --> draft
+//     draft --> submitted : submit
+//     submitted --> approved : approve
+//     ...
+```
+
 ## React Flow Adapter (optional)
 
 For visual editors built with React Flow:
@@ -433,6 +450,7 @@ import {
     exportGraphToYaml,
     exportGraphToJson,
     exportGraphToTs,
+    exportGraphToMermaid,
     autoLayoutNodes,
     buildDefinition,
 } from "symflow/react-flow";
@@ -444,6 +462,7 @@ const { nodes, edges, meta } = importWorkflowYamlToGraph(yamlString);
 const yaml = exportGraphToYaml({ nodes, edges, meta });
 const json = exportGraphToJson({ nodes, edges, meta });
 const ts = exportGraphToTs({ nodes, edges, meta, exportName: "myFlow" });
+const mmd = exportGraphToMermaid({ nodes, edges, meta });
 ```
 
 Requires `@xyflow/react` as a peer dependency.
@@ -639,6 +658,7 @@ Try it at [symflowbuilder.com/editor](https://symflowbuilder.com/editor).
 - [x] TypeScript codegen export
 - [x] `!php/const` and `!php/enum` YAML tag support
 - [x] React Flow adapter (graph ↔ definition)
+- [x] Mermaid `stateDiagram-v2` diagram export
 
 ### Planned
 
@@ -646,7 +666,6 @@ Try it at [symflowbuilder.com/editor](https://symflowbuilder.com/editor).
 - [ ] Weighted arcs (token counts > 1)
 - [ ] Named sub-events (`workflow.{name}.guard.{transition}`)
 - [ ] Graphviz / DOT export
-- [ ] Mermaid diagram export
 - [ ] Workflow composition (nested workflows)
 - [ ] Async transition support
 - [ ] Middleware / plugin system for custom event handling
