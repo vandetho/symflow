@@ -3,6 +3,9 @@
     "version": "2.4.2",
     "description": "A Symfony-compatible workflow engine for TypeScript and Node.js. State machines, Petri nets, guards, events, validation, and YAML/JSON/TypeScript import/export.",
     "type": "module",
+    "bin": {
+        "symflow": "./dist/cli.js"
+    },
     "main": "./dist/index.cjs",
     "module": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -41,6 +44,11 @@
             "types": "./dist/mermaid.d.ts",
             "import": "./dist/mermaid.js",
             "require": "./dist/mermaid.cjs"
+        },
+        "./graphviz": {
+            "types": "./dist/graphviz.d.ts",
+            "import": "./dist/graphviz.js",
+            "require": "./dist/graphviz.cjs"
         },
         "./types": {
             "types": "./dist/types.d.ts",
@@ -109,6 +117,7 @@
     },
     "devDependencies": {
         "@types/js-yaml": "^4.0.9",
+        "@types/node": "^25.6.0",
         "@typescript-eslint/eslint-plugin": "^8.58.2",
         "@typescript-eslint/parser": "^8.58.2",
         "@xyflow/react": "^12.10.2",

@@ -67,12 +67,15 @@ Follow the existing pattern (yaml, json, typescript, mermaid):
 - `WorkflowEngine` — Core class. Manages marking (token counts), fires transitions, emits events
 - Two workflow types: `state_machine` (single active place) and `workflow` (Petri net, parallel states)
 - Event order mirrors Symfony: guard > leave > transition > enter > entered > completed > announce
-- `validateDefinition()` — Catches 7 error types (unreachable places, dead transitions, etc.)
+- Weighted arcs: `Transition.consumeWeight` / `produceWeight` (optional, default 1)
+- Middleware: `use(mw)` or `middleware` option — wraps `apply()` lifecycle, `can()` is not wrapped
+- `validateDefinition()` — Catches 8 error types (unreachable places, dead transitions, invalid weights, etc.)
 - `analyzeWorkflow()` — Detects patterns: AND-split, AND-join, OR-split, XOR-split, etc.
 
 ### Subject API (`src/subject/`)
 
 - `Workflow<T>` — Wraps engine with subject awareness (reads/writes marking from domain objects)
+- `SubjectMiddleware<T>` — Middleware with `subject` in context, added via `use()` or `middleware` option
 - `propertyMarkingStore(prop)` — Reads/writes a string or string[] property
 - `methodMarkingStore(opts)` — Calls `getMarking()` / `setMarking()` methods
 
@@ -84,6 +87,7 @@ All follow `{ definition, meta }` shape:
 - **JSON** — Simple `{ definition, meta }` envelope
 - **TypeScript** — Generates typed `.ts` module with `{name}Definition` and `{name}Meta` exports
 - **Mermaid** — `stateDiagram-v2` text output. Sanitizes IDs, auto-detects final states
+- **Graphviz** — DOT `digraph` output. Intermediate nodes for AND-split/join, auto-detects final states
 
 ### React Flow Adapter (`src/adapters/react-flow/`)
 
@@ -92,9 +96,18 @@ Bridges visual editor graph and engine:
 - `buildDefinition(nodes, edges, meta)` — Graph to `WorkflowDefinition`
 - `autoLayoutNodes(nodes, edges)` — BFS layering + barycenter heuristic
 - `migrateGraphData()` — Idempotent migration from old edge-based to node-based transitions
-- Graph export wrappers: `exportGraphToYaml`, `exportGraphToJson`, `exportGraphToTs`, `exportGraphToMermaid`
+- Graph export wrappers: `exportGraphToYaml`, `exportGraphToJson`, `exportGraphToTs`, `exportGraphToMermaid`, `exportGraphToDot`
 
 Node types: `state` (StateNodeData), `transition` (TransitionNodeData). Edges are `connector` type.
+
+### CLI (`src/cli.ts`)
+
+Commands: `symflow validate <file>`, `symflow mermaid <file>`, `symflow dot <file>`.
+
+- Loads YAML (via `importWorkflowYaml`), JSON (via `importWorkflowJson`), or JS/TS (dynamic `import()`)
+- JS/TS files: looks for named exports `definition`/`meta`, default export, or `*Definition`/`*Meta` pattern
+- Built as a separate ESM entry with `#!/usr/bin/env node` banner
+- Supports `-o <file>` for file output, defaults to stdout
 
 ---
 
@@ -108,14 +121,14 @@ npm test            # vitest run
 npm run build       # tsup → dist/ (CJS + ESM + .d.ts)
 ```
 
-Build outputs 9 entry points (index, engine, subject, yaml, json, typescript, mermaid, types, react-flow) in both CJS and ESM with sourcemaps and type declarations.
+Build outputs 10 library entry points (index, engine, subject, yaml, json, typescript, mermaid, graphviz, types, react-flow) in CJS + ESM with sourcemaps and type declarations, plus a separate CLI entry (`dist/cli.js`).
 
 ### Tests
 
 - Vitest with `describe`/`it`/`expect`
 - Fixtures in `tests/fixtures.ts` (definitions) and `tests/fixtures/` (YAML files)
 - Coverage excludes `index.ts` files and `adapters/`
-- 137+ tests across 10 test files
+- 169+ tests across 11 test files
 
 ---
 
