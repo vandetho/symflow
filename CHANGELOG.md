@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.5.0](https://github.com/vandetho/symflow/compare/v2.4.2...v2.5.0) (2026-04-23)
+
+
+### Features
+
+* add Graphviz DOT export, CLI, and @types/node ([0baffca](https://github.com/vandetho/symflow/commit/0baffcac19d1b3c9d3f162bb0289b66f94d5ffcd))
+* add weighted arcs and middleware system ([9d35694](https://github.com/vandetho/symflow/commit/9d35694cfef8d849558ad1e90d96f54b23a0fce6))
+
+
+### Bug Fixes
+
+* **ci:** resolve TypeScript 6.x baseUrl deprecation and update GitHub App token config ([e8e7fc0](https://github.com/vandetho/symflow/commit/e8e7fc099598146748fff553b20dc765472720d9))
+* sync package-lock.json with @types/node dependency ([a47a966](https://github.com/vandetho/symflow/commit/a47a96663fdfc7a64020271d572baaa5a320a034))
+
 ## [2.4.2](https://github.com/vandetho/symflow/compare/v2.4.1...v2.4.2) (2026-04-21)
 
 
