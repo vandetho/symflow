@@ -46,6 +46,8 @@ export function buildDefinition(
             tos,
             guard: data.guard || undefined,
             metadata: Object.keys(data.metadata).length > 0 ? data.metadata : undefined,
+            consumeWeight: data.consumeWeight,
+            produceWeight: data.produceWeight,
         };
     });
 

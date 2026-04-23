@@ -133,6 +133,12 @@ export function importWorkflowYaml(yamlString: string): ImportResult {
             const tos = Array.isArray(tcObj.to) ? (tcObj.to as string[]) : [tcObj.to as string];
             const transition: Transition = { name, froms, tos };
             if (tcObj.guard) transition.guard = tcObj.guard as string;
+            if (typeof tcObj.consumeWeight === "number") {
+                transition.consumeWeight = tcObj.consumeWeight;
+            }
+            if (typeof tcObj.produceWeight === "number") {
+                transition.produceWeight = tcObj.produceWeight;
+            }
             if (tcObj.metadata) {
                 transition.metadata = tcObj.metadata as Record<string, string>;
             }

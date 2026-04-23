@@ -180,3 +180,54 @@ describe("methodMarkingStore", () => {
         );
     });
 });
+
+describe("Workflow<T> — middleware", () => {
+    it("subject middleware receives subject in context", () => {
+        const workflow = createWorkflow<Order>(orderStateMachine, {
+            markingStore: propertyMarkingStore("status"),
+            middleware: [
+                (ctx, next) => {
+                    expect(ctx.subject).toBeDefined();
+                    expect(ctx.subject.id).toBe("1");
+                    return next();
+                },
+            ],
+        });
+        const order: Order = { id: "1", status: "draft", amount: 100 };
+        workflow.apply(order, "submit");
+    });
+
+    it("subject middleware wraps the transition", () => {
+        const log: string[] = [];
+        const workflow = createWorkflow<Order>(orderStateMachine, {
+            markingStore: propertyMarkingStore("status"),
+            middleware: [
+                (_ctx, next) => {
+                    log.push("before");
+                    const result = next();
+                    log.push("after");
+                    return result;
+                },
+            ],
+        });
+        const order: Order = { id: "1", status: "draft", amount: 100 };
+        workflow.apply(order, "submit");
+        expect(log).toEqual(["before", "after"]);
+    });
+
+    it("use() adds middleware at runtime", () => {
+        const log: string[] = [];
+        const workflow = createWorkflow<Order>(orderStateMachine, {
+            markingStore: propertyMarkingStore("status"),
+        });
+
+        workflow.use((_ctx, next) => {
+            log.push("runtime-mw");
+            return next();
+        });
+
+        const order: Order = { id: "1", status: "draft", amount: 100 };
+        workflow.apply(order, "submit");
+        expect(log).toEqual(["runtime-mw"]);
+    });
+});

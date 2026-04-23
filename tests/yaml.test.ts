@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { exportWorkflowYaml } from "../src/yaml/export";
 import { importWorkflowYaml } from "../src/yaml/import";
-import { orderStateMachine, articleReviewWorkflow } from "./fixtures";
+import { orderStateMachine, articleReviewWorkflow, weightedWorkflow } from "./fixtures";
 import type { WorkflowMeta } from "../src/types/workflow";
 
 const orderMeta: WorkflowMeta = {
@@ -235,6 +235,45 @@ framework:
 
     it("throws on empty YAML", () => {
         expect(() => importWorkflowYaml("")).toThrow();
+    });
+
+    it("round-trips weighted arcs", () => {
+        const meta: WorkflowMeta = {
+            name: "factory",
+            symfonyVersion: "8.0",
+            type: "workflow",
+            marking_store: "method",
+            property: "currentState",
+            initial_marking: ["raw_materials"],
+            supports: "App\\Entity\\Factory",
+        };
+        const yaml = exportWorkflowYaml({ definition: weightedWorkflow, meta });
+        expect(yaml).toContain("consumeWeight: 3");
+        expect(yaml).toContain("produceWeight: 2");
+
+        const { definition } = importWorkflowYaml(yaml);
+        const manufacture = definition.transitions.find((t) => t.name === "manufacture");
+        expect(manufacture?.consumeWeight).toBe(3);
+        expect(manufacture?.produceWeight).toBe(2);
+
+        const assemble = definition.transitions.find((t) => t.name === "assemble");
+        expect(assemble?.consumeWeight).toBe(2);
+        expect(assemble?.produceWeight).toBeUndefined(); // default (1) is omitted
+    });
+
+    it("omits default weights (1) from YAML export", () => {
+        const meta: WorkflowMeta = {
+            name: "order",
+            symfonyVersion: "8.0",
+            type: "state_machine",
+            marking_store: "method",
+            property: "currentState",
+            initial_marking: ["draft"],
+            supports: "App\\Entity\\Order",
+        };
+        const yaml = exportWorkflowYaml({ definition: orderStateMachine, meta });
+        expect(yaml).not.toContain("consumeWeight");
+        expect(yaml).not.toContain("produceWeight");
     });
 
     it("round-trips workflow with metadata", () => {

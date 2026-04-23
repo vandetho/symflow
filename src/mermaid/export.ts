@@ -39,6 +39,11 @@ export function exportWorkflowMermaid({ definition }: ExportOptions): string {
     // Transitions
     for (const transition of definition.transitions) {
         let label = transition.name;
+        const cw = transition.consumeWeight ?? 1;
+        const pw = transition.produceWeight ?? 1;
+        if (cw !== 1 || pw !== 1) {
+            label = `${label} (${cw}:${pw})`;
+        }
         if (transition.guard) {
             label = `${label} [${transition.guard}]`;
         }

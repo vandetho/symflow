@@ -47,6 +47,33 @@ export const articleReviewWorkflow: WorkflowDefinition = {
     initialMarking: ["draft"],
 };
 
+export const weightedWorkflow: WorkflowDefinition = {
+    name: "factory",
+    type: "workflow",
+    places: [
+        { name: "raw_materials" },
+        { name: "components" },
+        { name: "assembled" },
+    ],
+    transitions: [
+        {
+            name: "manufacture",
+            froms: ["raw_materials"],
+            tos: ["components"],
+            consumeWeight: 3,
+            produceWeight: 2,
+        },
+        {
+            name: "assemble",
+            froms: ["components"],
+            tos: ["assembled"],
+            consumeWeight: 2,
+            produceWeight: 1,
+        },
+    ],
+    initialMarking: ["raw_materials"],
+};
+
 export const guardedStateMachine: WorkflowDefinition = {
     name: "guarded",
     type: "state_machine",

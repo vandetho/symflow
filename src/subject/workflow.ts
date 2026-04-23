@@ -6,11 +6,18 @@ import type {
     WorkflowDefinition,
     WorkflowEventType,
 } from "../engine";
-import type { MarkingStore, SubjectEventListener, SubjectGuardEvaluator } from "./types";
+import type {
+    MarkingStore,
+    SubjectEventListener,
+    SubjectGuardEvaluator,
+    SubjectMiddleware,
+} from "./types";
+import type { MiddlewareContext } from "../engine";
 
 export interface CreateWorkflowOptions<T> {
     markingStore: MarkingStore<T>;
     guardEvaluator?: SubjectGuardEvaluator<T>;
+    middleware?: SubjectMiddleware<T>[];
 }
 
 /**
@@ -23,11 +30,18 @@ export class Workflow<T> {
     private readonly markingStore: MarkingStore<T>;
     private readonly guardEvaluator?: SubjectGuardEvaluator<T>;
     private readonly listeners = new Map<WorkflowEventType, Set<SubjectEventListener<T>>>();
+    private readonly subjectMiddleware: SubjectMiddleware<T>[];
 
     constructor(definition: WorkflowDefinition, options: CreateWorkflowOptions<T>) {
         this.definition = definition;
         this.markingStore = options.markingStore;
         this.guardEvaluator = options.guardEvaluator;
+        this.subjectMiddleware = options.middleware ?? [];
+    }
+
+    /** Register a middleware. Middleware wraps the entire apply() lifecycle. */
+    use(mw: SubjectMiddleware<T>): void {
+        this.subjectMiddleware.push(mw);
     }
 
     getMarking(subject: T): Marking {
@@ -48,6 +62,13 @@ export class Workflow<T> {
 
     apply(subject: T, transitionName: string): Marking {
         const engine = this.buildEngine(subject);
+
+        // Convert subject middleware to engine middleware
+        for (const mw of this.subjectMiddleware) {
+            engine.use((ctx: MiddlewareContext, next: () => Marking) =>
+                mw({ ...ctx, subject }, next),
+            );
+        }
 
         const unsubscribers: Array<() => void> = [];
         for (const [type, listeners] of this.listeners) {

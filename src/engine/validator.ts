@@ -45,6 +45,38 @@ export function validateDefinition(definition: WorkflowDefinition): ValidationRe
         }
     }
 
+    // Invalid weights
+    for (const transition of definition.transitions) {
+        if (
+            transition.consumeWeight !== undefined &&
+            (!Number.isInteger(transition.consumeWeight) || transition.consumeWeight <= 0)
+        ) {
+            errors.push({
+                type: "invalid_weight",
+                message: `Transition "${transition.name}" has invalid consumeWeight: ${transition.consumeWeight} (must be a positive integer)`,
+                details: {
+                    transition: transition.name,
+                    field: "consumeWeight",
+                    value: transition.consumeWeight,
+                },
+            });
+        }
+        if (
+            transition.produceWeight !== undefined &&
+            (!Number.isInteger(transition.produceWeight) || transition.produceWeight <= 0)
+        ) {
+            errors.push({
+                type: "invalid_weight",
+                message: `Transition "${transition.name}" has invalid produceWeight: ${transition.produceWeight} (must be a positive integer)`,
+                details: {
+                    transition: transition.name,
+                    field: "produceWeight",
+                    value: transition.produceWeight,
+                },
+            });
+        }
+    }
+
     // Reachability analysis via BFS from initial marking
     const reachable = new Set<string>(definition.initialMarking);
     const queue = [...definition.initialMarking];

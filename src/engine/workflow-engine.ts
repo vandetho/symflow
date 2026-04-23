@@ -8,6 +8,8 @@ import type {
     WorkflowEventListener,
     WorkflowEvent,
     GuardEvaluator,
+    MiddlewareContext,
+    WorkflowMiddleware,
 } from "./types";
 
 const defaultGuardEvaluator: GuardEvaluator = () => true;
@@ -18,12 +20,22 @@ export class WorkflowEngine {
     private listeners = new Map<WorkflowEventType, Set<WorkflowEventListener>>();
     private guardEvaluator: GuardEvaluator;
     private placeNames: Set<string>;
+    private middleware: WorkflowMiddleware[];
 
-    constructor(definition: WorkflowDefinition, options?: { guardEvaluator?: GuardEvaluator }) {
+    constructor(
+        definition: WorkflowDefinition,
+        options?: { guardEvaluator?: GuardEvaluator; middleware?: WorkflowMiddleware[] },
+    ) {
         this.definition = definition;
         this.guardEvaluator = options?.guardEvaluator ?? defaultGuardEvaluator;
+        this.middleware = options?.middleware ?? [];
         this.placeNames = new Set(definition.places.map((p) => p.name));
         this.marking = this.buildInitialMarking();
+    }
+
+    /** Register a middleware. Middleware wraps the entire apply() lifecycle. */
+    use(mw: WorkflowMiddleware): void {
+        this.middleware.push(mw);
     }
 
     private buildInitialMarking(): Marking {
@@ -102,12 +114,13 @@ export class WorkflowEngine {
                 return { allowed: false, blockers };
             }
         } else {
-            // For workflow: all from-places must have at least one token
+            // For workflow: all from-places must have enough tokens
+            const weight = transition.consumeWeight ?? 1;
             for (const from of transition.froms) {
-                if ((this.marking[from] ?? 0) < 1) {
+                if ((this.marking[from] ?? 0) < weight) {
                     blockers.push({
                         code: "not_in_place",
-                        message: `Place "${from}" is not marked`,
+                        message: `Place "${from}" has ${this.marking[from] ?? 0} token(s), needs ${weight}`,
                     });
                 }
             }
@@ -146,6 +159,26 @@ export class WorkflowEngine {
 
         const transition = this.definition.transitions.find((t) => t.name === transitionName)!;
 
+        if (this.middleware.length === 0) {
+            return this.applyCore(transition);
+        }
+
+        const context: MiddlewareContext = {
+            definition: this.definition,
+            transition,
+            marking: this.getMarking(),
+            workflowName: this.definition.name,
+        };
+
+        const chain = this.middleware.reduceRight<() => Marking>(
+            (next, mw) => () => mw(context, next),
+            () => this.applyCore(transition),
+        );
+
+        return chain();
+    }
+
+    private applyCore(transition: Transition): Marking {
         // Fire events in Symfony order:
         // https://symfony.com/doc/current/workflow.html#using-events
 
@@ -156,8 +189,9 @@ export class WorkflowEngine {
         for (let i = 0; i < transition.froms.length; i++) {
             this.emit("leave", transition);
         }
+        const cw = transition.consumeWeight ?? 1;
         for (const from of transition.froms) {
-            this.marking[from] = Math.max(0, (this.marking[from] ?? 0) - 1);
+            this.marking[from] = Math.max(0, (this.marking[from] ?? 0) - cw);
         }
 
         // 3. Transition
@@ -169,8 +203,9 @@ export class WorkflowEngine {
         }
 
         // 5. Update marking (add tokens to target places)
+        const pw = transition.produceWeight ?? 1;
         for (const to of transition.tos) {
-            this.marking[to] = (this.marking[to] ?? 0) + 1;
+            this.marking[to] = (this.marking[to] ?? 0) + pw;
         }
 
         // 6. Entered — fire AFTER marking update (subject is now in new place)

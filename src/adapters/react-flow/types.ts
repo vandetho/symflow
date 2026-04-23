@@ -13,6 +13,8 @@ export interface TransitionNodeData {
     guard?: string;
     listeners: TransitionListener[];
     metadata: Record<string, string>;
+    consumeWeight?: number;
+    produceWeight?: number;
 }
 
 /** @deprecated Use TransitionNodeData — transitions are now nodes, not edges */

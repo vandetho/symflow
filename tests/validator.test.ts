@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { validateDefinition } from "../src/engine/validator";
-import { orderStateMachine, articleReviewWorkflow } from "./fixtures";
+import { orderStateMachine, articleReviewWorkflow, weightedWorkflow } from "./fixtures";
 import type { WorkflowDefinition } from "../src/engine/types";
 
 describe("validateDefinition", () => {
@@ -91,5 +91,54 @@ describe("validateDefinition", () => {
         };
         const result = validateDefinition(def);
         expect(result.errors.some((e) => e.type === "orphan_place")).toBe(true);
+    });
+
+    it("valid weighted workflow returns no errors", () => {
+        const result = validateDefinition(weightedWorkflow);
+        expect(result.valid).toBe(true);
+    });
+
+    it("detects invalid consumeWeight (zero)", () => {
+        const def: WorkflowDefinition = {
+            ...orderStateMachine,
+            transitions: [
+                { name: "submit", froms: ["draft"], tos: ["submitted"], consumeWeight: 0 },
+            ],
+        };
+        const result = validateDefinition(def);
+        expect(result.errors.some((e) => e.type === "invalid_weight")).toBe(true);
+    });
+
+    it("detects invalid consumeWeight (negative)", () => {
+        const def: WorkflowDefinition = {
+            ...orderStateMachine,
+            transitions: [
+                { name: "submit", froms: ["draft"], tos: ["submitted"], consumeWeight: -1 },
+            ],
+        };
+        const result = validateDefinition(def);
+        expect(result.errors.some((e) => e.type === "invalid_weight")).toBe(true);
+    });
+
+    it("detects invalid produceWeight (zero)", () => {
+        const def: WorkflowDefinition = {
+            ...orderStateMachine,
+            transitions: [
+                { name: "submit", froms: ["draft"], tos: ["submitted"], produceWeight: 0 },
+            ],
+        };
+        const result = validateDefinition(def);
+        expect(result.errors.some((e) => e.type === "invalid_weight")).toBe(true);
+    });
+
+    it("detects non-integer weight", () => {
+        const def: WorkflowDefinition = {
+            ...orderStateMachine,
+            transitions: [
+                { name: "submit", froms: ["draft"], tos: ["submitted"], consumeWeight: 1.5 },
+            ],
+        };
+        const result = validateDefinition(def);
+        expect(result.errors.some((e) => e.type === "invalid_weight")).toBe(true);
     });
 });

@@ -32,6 +32,12 @@ export function exportWorkflowYaml({ definition, meta }: ExportOptions): string 
             to: t.tos.length === 1 ? t.tos[0] : t.tos,
         };
         if (t.guard) transition.guard = t.guard;
+        if (t.consumeWeight !== undefined && t.consumeWeight !== 1) {
+            transition.consumeWeight = t.consumeWeight;
+        }
+        if (t.produceWeight !== undefined && t.produceWeight !== 1) {
+            transition.produceWeight = t.produceWeight;
+        }
         if (t.metadata && Object.keys(t.metadata).length > 0) {
             transition.metadata = t.metadata;
         }

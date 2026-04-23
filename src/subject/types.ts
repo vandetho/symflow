@@ -1,4 +1,10 @@
-import type { Marking, Transition, WorkflowEvent, WorkflowEventType } from "../engine";
+import type {
+    Marking,
+    Transition,
+    WorkflowEvent,
+    WorkflowEventType,
+    MiddlewareContext,
+} from "../engine";
 
 /**
  * Reads and writes a workflow's `Marking` onto a domain object (the "subject").
@@ -28,4 +34,13 @@ export type SubjectGuardEvaluator<T> = (
     context: SubjectGuardContext<T>,
 ) => boolean;
 
-export type { Marking, Transition, WorkflowEvent, WorkflowEventType };
+export interface SubjectMiddlewareContext<T> extends MiddlewareContext {
+    readonly subject: T;
+}
+
+export type SubjectMiddleware<T> = (
+    context: SubjectMiddlewareContext<T>,
+    next: () => Marking,
+) => Marking;
+
+export type { Marking, Transition, WorkflowEvent, WorkflowEventType, MiddlewareContext };

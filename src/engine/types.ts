@@ -12,6 +12,10 @@ export interface Transition {
     tos: string[];
     guard?: string;
     metadata?: Record<string, string>;
+    /** Tokens consumed from each source place per firing (default 1) */
+    consumeWeight?: number;
+    /** Tokens produced to each target place per firing (default 1) */
+    produceWeight?: number;
 }
 
 export interface WorkflowDefinition {
@@ -100,7 +104,8 @@ export type ValidationErrorType =
     | "invalid_transition_target"
     | "unreachable_place"
     | "dead_transition"
-    | "orphan_place";
+    | "orphan_place"
+    | "invalid_weight";
 
 export interface ValidationError {
     type: ValidationErrorType;
@@ -112,3 +117,15 @@ export interface ValidationResult {
     valid: boolean;
     errors: ValidationError[];
 }
+
+export interface MiddlewareContext {
+    readonly definition: WorkflowDefinition;
+    readonly transition: Transition;
+    readonly marking: Marking;
+    readonly workflowName: string;
+}
+
+export type WorkflowMiddleware = (
+    context: MiddlewareContext,
+    next: () => Marking,
+) => Marking;
