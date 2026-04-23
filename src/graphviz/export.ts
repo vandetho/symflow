@@ -36,9 +36,7 @@ export function exportWorkflowDot({ definition }: ExportOptions): string {
         const isFinal = !placesWithOutgoing.has(place.name);
         const shape = isFinal ? "doublecircle" : "circle";
         const label = place.metadata?.description ?? place.name;
-        lines.push(
-            `    ${sanitizeId(place.name)} [shape=${shape}, label=${sanitizeId(label)}];`,
-        );
+        lines.push(`    ${sanitizeId(place.name)} [shape=${shape}, label=${sanitizeId(label)}];`);
     }
 
     lines.push("");
@@ -67,7 +65,9 @@ export function exportWorkflowDot({ definition }: ExportOptions): string {
         } else {
             // AND-split / AND-join: use an intermediate point node for the transition
             const tId = `__t_${transition.name.replace(/[^a-zA-Z0-9_]/g, "_")}__`;
-            lines.push(`    ${tId} [shape=rect, width=0.3, height=0.2, label=${sanitizeId(transition.name)}];`);
+            lines.push(
+                `    ${tId} [shape=rect, width=0.3, height=0.2, label=${sanitizeId(transition.name)}];`,
+            );
             for (const from of transition.froms) {
                 const edgeLabel = cw !== 1 ? ` [label="${cw}"]` : "";
                 lines.push(`    ${sanitizeId(from)} -> ${tId}${edgeLabel};`);

@@ -125,7 +125,4 @@ export interface MiddlewareContext {
     readonly workflowName: string;
 }
 
-export type WorkflowMiddleware = (
-    context: MiddlewareContext,
-    next: () => Marking,
-) => Marking;
+export type WorkflowMiddleware = (context: MiddlewareContext, next: () => Marking) => Marking;
