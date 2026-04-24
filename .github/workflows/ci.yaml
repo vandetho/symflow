@@ -60,4 +60,6 @@ jobs:
             - uses: googleapis/release-please-action@v4
               with:
                   release-type: node
+                  package-name: symflow
+                  path: packages/ts
                   token: ${{ steps.token.outputs.token }}
