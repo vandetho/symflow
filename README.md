@@ -109,6 +109,37 @@ Import only what you need -- most have zero dependencies.
 | [CLI](./docs/cli.md) | validate, mermaid, dot commands |
 | [Persistence Formats](./docs/persistence-formats.md) | YAML, JSON, TypeScript, PHP, Mermaid, Graphviz |
 
+## React Flow Adapter
+
+For visual editors built with React Flow (used by [SymFlowBuilder](https://symflowbuilder.com)):
+
+```ts
+import {
+    importWorkflowYamlToGraph,
+    exportGraphToYaml,
+    exportGraphToJson,
+    exportGraphToTs,
+    exportGraphToPhp,
+    exportGraphToMermaid,
+    exportGraphToDot,
+    autoLayoutNodes,
+    buildDefinition,
+} from "symflow/react-flow";
+
+// Import YAML into React Flow nodes/edges
+const { nodes, edges, meta } = importWorkflowYamlToGraph(yamlString);
+
+// Export from graph
+const yaml = exportGraphToYaml({ nodes, edges, meta });
+const json = exportGraphToJson({ nodes, edges, meta });
+const ts = exportGraphToTs({ nodes, edges, meta, exportName: "myFlow" });
+const php = exportGraphToPhp({ nodes, edges, meta });
+const mmd = exportGraphToMermaid({ nodes, edges, meta });
+const dot = exportGraphToDot({ nodes, edges, meta });
+```
+
+`TransitionNodeData` supports `consumeWeight` and `produceWeight` for weighted arc editing. Requires `@xyflow/react` as a peer dependency.
+
 ## Laravel / PHP
 
 Looking for the PHP version? See [**symflow-laravel**](https://github.com/vandetho/symflow-laravel) -- the same engine for Laravel 11+.

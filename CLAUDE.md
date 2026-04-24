@@ -94,6 +94,7 @@ Bridges visual editor graph and engine:
 - `autoLayoutNodes(nodes, edges)` — BFS layering + barycenter heuristic
 - `migrateGraphData()` — Idempotent migration from old edge-based to node-based transitions
 - Graph export wrappers: `exportGraphToYaml`, `exportGraphToJson`, `exportGraphToTs`, `exportGraphToPhp`, `exportGraphToMermaid`, `exportGraphToDot`
+- `TransitionNodeData` includes `consumeWeight?` and `produceWeight?` for weighted arc support in visual editors
 
 ### CLI (`src/cli.ts`)
 
