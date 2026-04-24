@@ -1,0 +1,8 @@
+{
+    "packages": {
+        "packages/ts": {
+            "release-type": "node",
+            "package-name": "symflow"
+        }
+    }
+}
