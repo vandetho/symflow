@@ -1,5 +1,5 @@
 {
-    "name": "vandetho/laraflow",
+    "name": "vandetho/symflow-laravel",
     "version": "1.0.0",
     "description": "A Symfony-compatible workflow engine for Laravel. State machines, Petri nets, guards, events, validation, weighted arcs, middleware, and YAML/JSON/PHP import/export.",
     "keywords": [
