@@ -1,84 +1,40 @@
-# CLAUDE.md — symflow monorepo
+# CLAUDE.md — symflow
 
 ## Project Overview
 
-Monorepo for the SymFlow workflow engine — Symfony-compatible state machines and Petri nets.
+Symfony-compatible workflow engine for TypeScript and Node.js. State machines, Petri nets, guards, events, validation, pattern analysis, and multi-format import/export.
 
-| Package | Path | Registry | Language |
-|---------|------|----------|----------|
-| **symflow** | `packages/ts/` | [npm](https://www.npmjs.com/package/symflow) | TypeScript |
-| **laraflow** | `packages/laravel/` | [Packagist](https://packagist.org/packages/vandetho/laraflow) | PHP 8.2+ / Laravel 11+ |
-
+- **npm:** https://www.npmjs.com/package/symflow
 - **Repo:** https://github.com/vandetho/symflow
-- **Consumer:** [SymFlowBuilder](https://symflowbuilder.com)
+- **Laravel version:** https://github.com/vandetho/symflow-laravel
+- **Consumer:** [SymFlowBuilder](https://symflowbuilder.com) imports this as `symflow`
+- **Stack:** TypeScript (strict) · tsup (build) · Vitest (test) · ESLint + Prettier
+- **Zero runtime deps** except `js-yaml` for YAML and optional `@xyflow/react` peer dep
 
 ---
 
-## packages/ts — symflow (TypeScript)
-
-### Stack
-TypeScript (strict) · tsup (build) · Vitest (test) · ESLint + Prettier
-Zero runtime deps except `js-yaml` for YAML and optional `@xyflow/react` peer dep.
+## Coding Conventions
 
 ### Style
-- 4 spaces, 100 chars, double quotes, trailing commas
-- Files: kebab-case · Types: PascalCase · Constants: UPPER_SNAKE_CASE · Functions: camelCase
-- Enforce `import type` keyword · Unused params: prefix with `_`
 
-### Architecture
-- **Engine** (`src/engine/`) — `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, weighted arcs, middleware
-- **Subject** (`src/subject/`) — `Workflow<T>`, `propertyMarkingStore`, `methodMarkingStore`, `SubjectMiddleware`
-- **Import/Export** — YAML (Symfony-compat), JSON, TypeScript, Mermaid, Graphviz DOT
-- **React Flow Adapter** (`src/adapters/react-flow/`) — graph ↔ definition, auto-layout
-- **CLI** (`src/cli.ts`) — `symflow validate|mermaid|dot <file>`
+- **Indentation:** 4 spaces
+- **Line width:** 100 chars
+- **Quotes:** Double quotes (Prettier)
+- **Trailing commas:** Always
+- **Arrow parens:** Always `(x) => y`
+- **Type imports:** Enforce `import type` keyword (ESLint rule `consistent-type-imports`)
+- **Unused params:** Prefix with `_` (ESLint `no-unused-vars` rule)
 
-### Build & Test
-```bash
-cd packages/ts
-npm run typecheck && npm run lint && npm test && npm run build
-```
-169+ tests across 11 test files.
+### Naming
 
----
-
-## packages/laravel — laraflow (PHP)
-
-### Stack
-PHP 8.2+ · Laravel 11+ · Pest (test) · symfony/yaml
-
-### Style
-- PSR-4 autoloading under `Laraflow\` namespace
-- PHP 8.2 enums, readonly classes, strict types
-- Pest test framework
-
-### Architecture
-- **Engine** (`src/Engine/`) — `WorkflowEngine`, `Validator`, `Analyzer`
-- **Subject** (`src/Subject/`) — `Workflow`, `PropertyMarkingStore`, `MethodMarkingStore`
-- **Import/Export** — YAML, JSON, PHP codegen, Mermaid, Graphviz DOT
-- **Laravel** — `LaraflowServiceProvider`, `Laraflow` facade, `HasWorkflowTrait`, 7 event classes, `WorkflowRegistry`
-- **Console** — `laraflow:validate`, `laraflow:mermaid`, `laraflow:dot`
-- **Config** — `config/laraflow.php` (declarative workflow definitions)
-
-### Build & Test
-```bash
-cd packages/laravel
-composer install && ./vendor/bin/pest
-```
-117 tests, 199 assertions.
-
----
-
-## CI/CD
-
-- **CI** (`ci.yaml`): Runs both `ts` (Node 20.x + 22.x) and `laravel` (PHP 8.2) jobs
-- **Publish** (`publish.yaml`): npm publish from `packages/ts/` on GitHub release
-- **Auto-merge** (`auto-merge.yaml`): release-please and dependabot PRs
-
----
-
-## Coding Conventions (TypeScript)
+- **Files:** kebab-case (`workflow-engine.ts`, `marking-store.ts`)
+- **Types/Interfaces:** PascalCase (`WorkflowEngine`, `Marking`, `TransitionResult`)
+- **Constants:** UPPER_SNAKE_CASE (`DEFAULT_WORKFLOW_META`, `STATE_NAME_REGEX`)
+- **Functions:** camelCase (`validateDefinition`, `analyzeWorkflow`)
+- **Private fields:** `private` keyword, no prefix
 
 ### Module Structure
+
 ```
 src/yaml/
   export.ts   — exportWorkflowYaml()
@@ -86,7 +42,10 @@ src/yaml/
   index.ts    — export * from "./export"; export * from "./import";
 ```
 
+Index files re-export everything with `export *` — no named re-exports.
+
 ### Adding a New Export Format
+
 1. Create `src/{format}/export.ts` — pure function taking `{ definition, meta }`
 2. Create `src/{format}/index.ts` — barrel export
 3. Add to `src/index.ts`: `export * from "./{format}"`
@@ -97,11 +56,83 @@ src/yaml/
 
 ---
 
+## Architecture
+
+### Engine (`src/engine/`)
+
+- `WorkflowEngine` — Core class. Manages marking (token counts), fires transitions, emits events
+- Two workflow types: `state_machine` (single active place) and `workflow` (Petri net, parallel states)
+- Event order mirrors Symfony: guard > leave > transition > enter > entered > completed > announce
+- Weighted arcs: `Transition.consumeWeight` / `produceWeight` (optional, default 1)
+- Middleware: `use(mw)` or `middleware` option — wraps `apply()` lifecycle, `can()` is not wrapped
+- `validateDefinition()` — Catches 8 error types (unreachable places, dead transitions, invalid weights, etc.)
+- `analyzeWorkflow()` — Detects patterns: AND-split, AND-join, OR-split, XOR-split, etc.
+
+### Subject API (`src/subject/`)
+
+- `Workflow<T>` — Wraps engine with subject awareness (reads/writes marking from domain objects)
+- `SubjectMiddleware<T>` — Middleware with `subject` in context, added via `use()` or `middleware` option
+- `propertyMarkingStore(prop)` — Reads/writes a string or string[] property
+- `methodMarkingStore(opts)` — Calls `getMarking()` / `setMarking()` methods
+
+### Import/Export Modules
+
+All follow `{ definition, meta }` shape:
+
+- **YAML** — Symfony-compatible. Handles `!php/const` and `!php/enum` tags via preprocessing
+- **JSON** — Simple `{ definition, meta }` envelope
+- **TypeScript** — Generates typed `.ts` module with `{name}Definition` and `{name}Meta` exports
+- **PHP** — Generates Laraflow-compatible `.php` config file
+- **Mermaid** — `stateDiagram-v2` text output. Sanitizes IDs, auto-detects final states
+- **Graphviz** — DOT `digraph` output. Intermediate nodes for AND-split/join, auto-detects final states
+
+### React Flow Adapter (`src/adapters/react-flow/`)
+
+Bridges visual editor graph and engine:
+
+- `buildDefinition(nodes, edges, meta)` — Graph to `WorkflowDefinition`
+- `autoLayoutNodes(nodes, edges)` — BFS layering + barycenter heuristic
+- `migrateGraphData()` — Idempotent migration from old edge-based to node-based transitions
+- Graph export wrappers: `exportGraphToYaml`, `exportGraphToJson`, `exportGraphToTs`, `exportGraphToPhp`, `exportGraphToMermaid`, `exportGraphToDot`
+
+### CLI (`src/cli.ts`)
+
+Commands: `symflow validate <file>`, `symflow mermaid <file>`, `symflow dot <file>`.
+
+---
+
+## Build & Test
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm run lint        # eslint src/
+npm run format      # prettier --write
+npm test            # vitest run
+npm run build       # tsup → dist/ (CJS + ESM + .d.ts)
+```
+
+183+ tests across 12 test files.
+
+---
+
+## Release Process
+
+- **Conventional commits** (`feat:` → minor, `fix:` → patch, `chore:`/`docs:` → no release)
+- **release-please** automates version bumps and CHANGELOG
+- **CI** (`ci.yaml`): lint, format check, typecheck, test, build on Node 20.x + 22.x
+- **Publish** (`publish.yaml`): on GitHub release event, `npm publish --provenance`
+- **Auto-merge** (`auto-merge.yaml`): release-please and dependabot PRs
+
+---
+
 ## Key Constraints
 
-- Both packages implement the same workflow semantics (Symfony-compatible)
-- Event order: guard > leave > transition > enter > entered > completed > announce
-- Marking is `Record<string, number>` (TS) / `array<string, int>` (PHP)
+- Strict TypeScript (`strict: true`)
+- Zero deps for engine/subject/types/json/typescript/php/mermaid — only `js-yaml` for YAML
+- `@xyflow/react` is an optional peer dependency (for react-flow adapter only)
+- Marking is `Record<string, number>` — token counts, not just active/inactive
 - Weighted arcs: `consumeWeight` / `produceWeight` (default 1)
 - Middleware wraps `apply()` only, not `can()`
-- YAML export produces valid Symfony `framework.workflows` config
+- Engine returns copies of marking (immutable read)
+- YAML export must produce valid Symfony `framework.workflows` config
+- Dual CJS + ESM build (tsup with `splitting: false`)

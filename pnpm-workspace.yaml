@@ -1,5 +1,2 @@
-packages:
-    - "packages/ts"
-
 allowBuilds:
     esbuild: false

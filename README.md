@@ -2,43 +2,59 @@
 
 [![CI](https://github.com/vandetho/symflow/actions/workflows/ci.yaml/badge.svg)](https://github.com/vandetho/symflow/actions/workflows/ci.yaml)
 [![npm](https://img.shields.io/npm/v/symflow)](https://www.npmjs.com/package/symflow)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/symflow)](https://bundlephobia.com/package/symflow)
 [![downloads](https://img.shields.io/npm/dm/symflow)](https://npm-stat.com/charts.html?package=symflow)
 
-A Symfony-compatible workflow engine for **TypeScript** and **Laravel/PHP**. Design state machines and Petri net workflows with the same semantics as Symfony's Workflow component.
+A Symfony-compatible workflow engine for TypeScript and Node.js. Design state machines and Petri net workflows with the same semantics as Symfony's Workflow component -- no PHP required.
 
-```mermaid
-flowchart LR
-    draft((draft))
-    t1{submit}
-    submitted((submitted))
-    t2{approve}
-    t3{reject}
-    approved((approved))
-    rejected((rejected))
-    t4{fulfill}
-    fulfilled((fulfilled))
-
-    draft --> t1 --> submitted
-    submitted --> t2 --> approved
-    submitted --> t3 --> rejected
-    approved --> t4 --> fulfilled
-
-    style t1 fill:#f59e0b,color:#000,stroke:#f59e0b
-    style t2 fill:#f59e0b,color:#000,stroke:#f59e0b
-    style t3 fill:#f59e0b,color:#000,stroke:#f59e0b
-    style t4 fill:#f59e0b,color:#000,stroke:#f59e0b
-```
+The engine has **zero runtime dependencies** and runs anywhere JavaScript runs: Node.js backends, serverless functions, CLI tools, or the browser. The core engine is **~2.5 kB gzipped** -- the full bundle with all formats is under 8 kB.
 
 > Design workflows visually with [SymFlowBuilder](https://symflowbuilder.com/editor) -- drag-and-drop states and transitions, test with the built-in simulator, then export and run in production.
 
-## Packages
+## Installation
 
-| Package | Language | Install | Docs |
-|---------|----------|---------|------|
-| **[symflow](./packages/ts/)** | TypeScript / Node.js | `npm install symflow` | [README](./packages/ts/docs/getting-started.md) |
-| **[laraflow](./packages/laravel/)** | PHP 8.2+ / Laravel 11+ | `composer require vandetho/laraflow` | [README](./packages/laravel/README.md) |
+```bash
+npm install symflow
+```
 
-Both packages implement the same workflow engine with full feature parity.
+## Quick Start
+
+```ts
+import { WorkflowEngine, validateDefinition, type WorkflowDefinition } from "symflow/engine";
+
+const definition: WorkflowDefinition = {
+    name: "order",
+    type: "state_machine",
+    places: [
+        { name: "draft" },
+        { name: "submitted" },
+        { name: "approved" },
+        { name: "rejected" },
+        { name: "fulfilled" },
+    ],
+    transitions: [
+        { name: "submit", froms: ["draft"], tos: ["submitted"] },
+        { name: "approve", froms: ["submitted"], tos: ["approved"] },
+        { name: "reject", froms: ["submitted"], tos: ["rejected"] },
+        { name: "fulfill", froms: ["approved"], tos: ["fulfilled"] },
+    ],
+    initialMarking: ["draft"],
+};
+
+const { valid, errors } = validateDefinition(definition);
+if (!valid) throw new Error(errors.map((e) => e.message).join("\n"));
+
+const engine = new WorkflowEngine(definition);
+
+engine.getActivePlaces();        // ["draft"]
+engine.getEnabledTransitions();  // [{ name: "submit", ... }]
+
+if (engine.can("submit").allowed) {
+    engine.apply("submit");
+}
+
+engine.getActivePlaces();  // ["submitted"]
+```
 
 ## Features
 
@@ -51,104 +67,55 @@ Both packages implement the same workflow engine with full feature parity.
 - **Middleware** -- wrap `apply()` with composable before/after hooks
 - **Validation** -- catches unreachable places, dead transitions, invalid weights
 - **Pattern analysis** -- detects AND-split, AND-join, OR-split, XOR patterns
-- **Import/Export** -- YAML (Symfony-compatible), JSON, TypeScript/PHP codegen, Mermaid, Graphviz DOT
-- **CLI / Artisan commands** -- validate, export diagrams from the command line
-
-## Quick Start
-
-### TypeScript
-
-```bash
-npm install symflow
-```
-
-```ts
-import { WorkflowEngine, validateDefinition } from "symflow/engine";
-
-const definition = {
-    name: "order",
-    type: "state_machine",
-    places: [{ name: "draft" }, { name: "submitted" }, { name: "approved" }],
-    transitions: [
-        { name: "submit", froms: ["draft"], tos: ["submitted"] },
-        { name: "approve", froms: ["submitted"], tos: ["approved"] },
-    ],
-    initialMarking: ["draft"],
-};
-
-const engine = new WorkflowEngine(definition);
-engine.apply("submit");
-engine.getActivePlaces(); // ["submitted"]
-```
-
-### Laravel
-
-```bash
-composer require vandetho/laraflow
-php artisan vendor:publish --tag=laraflow-config
-```
-
-```php
-// config/laraflow.php
-'workflows' => [
-    'order' => [
-        'type' => 'state_machine',
-        'marking_store' => ['type' => 'property', 'property' => 'status'],
-        'initial_marking' => ['draft'],
-        'places' => ['draft', 'submitted', 'approved'],
-        'transitions' => [
-            'submit' => ['from' => 'draft', 'to' => 'submitted'],
-            'approve' => ['from' => 'submitted', 'to' => 'approved'],
-        ],
-    ],
-],
-```
-
-```php
-use Laraflow\Facades\Laraflow;
-
-$workflow = Laraflow::get('order');
-$workflow->apply($order, 'submit');
-```
-
-Or use the Eloquent trait:
-
-```php
-use Laraflow\Eloquent\HasWorkflowTrait;
-
-class Order extends Model
-{
-    use HasWorkflowTrait;
-
-    protected function getDefaultWorkflowName(): string
-    {
-        return 'order';
-    }
-}
-
-$order->applyTransition('submit');
-$order->canTransition('approve'); // true/false
-```
+- **Import/Export** -- YAML (Symfony-compatible), JSON, TypeScript, PHP, Mermaid, Graphviz DOT
+- **CLI** -- `symflow validate`, `symflow mermaid`, `symflow dot`
+- **React Flow adapter** -- optional integration for visual editors
 
 ## CLI
 
 ```bash
-# TypeScript
 symflow validate workflow.yaml
 symflow mermaid workflow.yaml -o diagram.mmd
 symflow dot workflow.yaml | dot -Tpng -o graph.png
-
-# Laravel
-php artisan laraflow:validate workflow.yaml
-php artisan laraflow:mermaid workflow.yaml --output=diagram.mmd
-php artisan laraflow:dot workflow.yaml
 ```
 
-## SymFlowBuilder
+## Subpath Exports
 
-[SymFlowBuilder](https://symflowbuilder.com) is the visual editor companion. Design workflows with drag-and-drop, simulate transitions, and export production-ready configs.
+Import only what you need -- most have zero dependencies.
 
-Try it at [symflowbuilder.com/editor](https://symflowbuilder.com/editor).
+| Import               | Contents                                                                     | Extra deps             |
+| -------------------- | ---------------------------------------------------------------------------- | ---------------------- |
+| `symflow/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types             | none                   |
+| `symflow/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none                  |
+| `symflow/yaml`       | Symfony YAML import/export                                                   | `js-yaml`              |
+| `symflow/json`       | JSON import/export                                                           | none                   |
+| `symflow/typescript` | TypeScript codegen from a definition                                         | none                   |
+| `symflow/php`        | PHP/Laraflow codegen from a definition                                       | none                   |
+| `symflow/mermaid`    | Mermaid `stateDiagram-v2` export                                             | none                   |
+| `symflow/graphviz`   | Graphviz DOT digraph export                                                  | none                   |
+| `symflow/types`      | `WorkflowMeta`, `TransitionListener`, defaults                               | none                   |
+| `symflow/react-flow` | React Flow node/edge types, graph utilities                                  | `@xyflow/react` (peer) |
+| `symflow`            | All of the above re-exported                                                 | all                    |
+
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](./docs/getting-started.md) | Installation, first workflow, subpath imports |
+| [Engine API](./docs/engine-api.md) | WorkflowEngine, events, guards, validation, pattern analysis |
+| [Subject API](./docs/subject-api.md) | Workflow\<T\>, marking stores, subject events |
+| [Weighted Arcs](./docs/weighted-arcs.md) | Multi-token transitions |
+| [Middleware](./docs/middleware.md) | Composable lifecycle hooks |
+| [CLI](./docs/cli.md) | validate, mermaid, dot commands |
+| [Persistence Formats](./docs/persistence-formats.md) | YAML, JSON, TypeScript, PHP, Mermaid, Graphviz |
+
+## Laravel / PHP
+
+Looking for the PHP version? See [**symflow-laravel**](https://github.com/vandetho/symflow-laravel) -- the same engine for Laravel 11+.
+
+```bash
+composer require vandetho/symflow-laravel
+```
 
 ## License
 
