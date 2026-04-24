@@ -50,6 +50,11 @@
             "import": "./dist/graphviz.js",
             "require": "./dist/graphviz.cjs"
         },
+        "./php": {
+            "types": "./dist/php.d.ts",
+            "import": "./dist/php.js",
+            "require": "./dist/php.cjs"
+        },
         "./types": {
             "types": "./dist/types.d.ts",
             "import": "./dist/types.js",
