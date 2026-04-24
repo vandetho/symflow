@@ -17,17 +17,6 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Generate token
-              id: token
-              uses: actions/create-github-app-token@v3
-              with:
-                  client-id: ${{ secrets.BOT_CLIENT_ID }}
-                  private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-                  owner: vandetho
-                  repositories: |
-                      symflow
-                      laraflow
-
             - name: Install splitsh-lite
               run: |
                   curl -L https://github.com/splitsh/lite/releases/download/v1.0.1/lite_linux_amd64.tar.gz | tar -xz
@@ -36,7 +25,7 @@ jobs:
 
             - name: Split and push
               env:
-                  GH_TOKEN: ${{ steps.token.outputs.token }}
+                  GH_TOKEN: ${{ secrets.LARAFLOW_PAT }}
               run: |
                   SHA=$(splitsh-lite --prefix=packages/laravel)
                   git remote remove laraflow 2>/dev/null || true
