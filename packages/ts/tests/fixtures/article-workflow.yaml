@@ -1,0 +1,52 @@
+framework:
+    workflows:
+        article_workflow:
+            type: 'workflow'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type:     'method'
+                property: 'marking'
+            supports:
+                - App\Entity\Article
+            initial_marking: NEW_ARTICLE
+            places:
+                NEW_ARTICLE:
+                CHECKING_CONTENT:
+                    metadata:
+                        bg_color: ORANGE
+                CONTENT_APPROVED:
+                    metadata:
+                        bg_color: DeepSkyBlue
+                CHECKING_SPELLING:
+                    metadata:
+                        bg_color: ORANGE
+                SPELLING_APPROVED:
+                    metadata:
+                        bg_color: DeepSkyBlue
+                PUBLISHED:
+                    metadata:
+                        bg_color: Lime
+            transitions:
+                CREATE_ARTICLE:
+                    from:
+                        - NEW_ARTICLE
+                    to:
+                        - CHECKING_CONTENT
+                        - CHECKING_SPELLING
+                APPROVE_SPELLING:
+                    from:
+                        - CHECKING_SPELLING
+                    to:
+                        - SPELLING_APPROVED
+                APPROVE_CONTENT:
+                    from:
+                        - CHECKING_CONTENT
+                    to:
+                        - CONTENT_APPROVED
+                PUBLISH:
+                    from:
+                        - CONTENT_APPROVED
+                        - SPELLING_APPROVED
+                    to:
+                        - PUBLISHED

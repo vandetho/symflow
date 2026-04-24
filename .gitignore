@@ -1,7 +1,16 @@
+# TypeScript
 node_modules/
-
-dist
-
-.ideadist/
-.idea/
+dist/
 *.pem
+
+# PHP/Laravel
+packages/laravel/vendor/
+packages/laravel/composer.lock
+packages/laravel/.phpunit.cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store

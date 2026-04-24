@@ -7,8 +7,11 @@ on:
         branches: [main]
 
 jobs:
-    build:
+    ts:
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: packages/ts
         strategy:
             matrix:
                 node-version: [20.x, 22.x]
@@ -18,6 +21,7 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: npm
+                  cache-dependency-path: packages/ts/package-lock.json
             - run: npm ci
             - run: npm run lint
             - run: npm run format:check
@@ -25,8 +29,22 @@ jobs:
             - run: npm test
             - run: npm run build
 
+    laravel:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: packages/laravel
+        steps:
+            - uses: actions/checkout@v4
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.2"
+                  coverage: none
+            - run: composer install --no-interaction --prefer-dist
+            - run: ./vendor/bin/pest
+
     release-please:
-        needs: build
+        needs: [ts, laravel]
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         runs-on: ubuntu-latest
         permissions:
