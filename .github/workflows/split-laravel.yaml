@@ -39,5 +39,6 @@ jobs:
                   GH_TOKEN: ${{ steps.token.outputs.token }}
               run: |
                   SHA=$(splitsh-lite --prefix=packages/laravel)
-                  git remote add laraflow https://x-access-token:${GH_TOKEN}@github.com/vandetho/laraflow.git || true
+                  git remote remove laraflow 2>/dev/null || true
+                  git remote add laraflow https://x-access-token:${GH_TOKEN}@github.com/vandetho/laraflow.git
                   git push laraflow ${SHA}:refs/heads/main --force
