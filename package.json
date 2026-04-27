@@ -50,6 +50,11 @@
             "import": "./dist/graphviz.js",
             "require": "./dist/graphviz.cjs"
         },
+        "./svg": {
+            "types": "./dist/svg.d.ts",
+            "import": "./dist/svg.js",
+            "require": "./dist/svg.cjs"
+        },
         "./php": {
             "types": "./dist/php.d.ts",
             "import": "./dist/php.js",

@@ -11,6 +11,7 @@ export default defineConfig([
             typescript: "src/typescript/index.ts",
             mermaid: "src/mermaid/index.ts",
             graphviz: "src/graphviz/index.ts",
+            svg: "src/svg/index.ts",
             php: "src/php/index.ts",
             types: "src/types/index.ts",
             "react-flow": "src/adapters/react-flow/index.ts",
