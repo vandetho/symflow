@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/vandetho/symflow/compare/v3.0.0...v3.1.0) (2026-04-24)
+
+
+### Features
+
+* add connectWithBranch utility for React Flow adapter ([9e1c339](https://github.com/vandetho/symflow/commit/9e1c339778b4117536b6036af1033afb826eb2bc))
+
 ## [3.0.0](https://github.com/vandetho/symflow/compare/v2.8.0...v3.0.0) (2026-04-24)
 
 
