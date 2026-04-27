@@ -265,7 +265,9 @@ export function renderPositionedSvg(opts: SvgRenderOptions): string {
     if (opts.title) {
         out.push(`<title>${escapeXml(opts.title)}</title>`);
     }
-    out.push(`<rect x="${viewX}" y="${viewY}" width="${viewW}" height="${viewH}" fill="${theme.bg}"/>`);
+    out.push(
+        `<rect x="${viewX}" y="${viewY}" width="${viewW}" height="${viewH}" fill="${theme.bg}"/>`,
+    );
     out.push(
         `<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="${theme.edge}"/></marker></defs>`,
     );

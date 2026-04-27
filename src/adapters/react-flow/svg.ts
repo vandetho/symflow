@@ -1,10 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { WorkflowMeta } from "../../types";
-import {
-    renderPositionedSvg,
-    type SvgPositionedEdge,
-    type SvgPositionedNode,
-} from "../../svg";
+import { renderPositionedSvg, type SvgPositionedEdge, type SvgPositionedNode } from "../../svg";
 import type { StateNodeData, TransitionNodeData } from "./types";
 
 /**
