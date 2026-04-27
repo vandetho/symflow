@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/vandetho/symflow/compare/v3.1.0...v3.2.0) (2026-04-27)
+
+
+### Features
+
+* **svg:** add SVG exporter with auto-layout and React Flow adapter ([19b35c8](https://github.com/vandetho/symflow/commit/19b35c8e51138218e5609ed06b6b86e58af90575))
+
 ## [3.1.0](https://github.com/vandetho/symflow/compare/v3.0.0...v3.1.0) (2026-04-24)
 
 
