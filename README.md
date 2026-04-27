@@ -83,31 +83,32 @@ symflow dot workflow.yaml | dot -Tpng -o graph.png
 
 Import only what you need -- most have zero dependencies.
 
-| Import               | Contents                                                                     | Extra deps             |
-| -------------------- | ---------------------------------------------------------------------------- | ---------------------- |
-| `symflow/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types             | none                   |
-| `symflow/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none                  |
-| `symflow/yaml`       | Symfony YAML import/export                                                   | `js-yaml`              |
-| `symflow/json`       | JSON import/export                                                           | none                   |
-| `symflow/typescript` | TypeScript codegen from a definition                                         | none                   |
-| `symflow/php`        | PHP/Laraflow codegen from a definition                                       | none                   |
-| `symflow/mermaid`    | Mermaid `stateDiagram-v2` export                                             | none                   |
-| `symflow/graphviz`   | Graphviz DOT digraph export                                                  | none                   |
-| `symflow/types`      | `WorkflowMeta`, `TransitionListener`, defaults                               | none                   |
-| `symflow/react-flow` | React Flow node/edge types, graph utilities                                  | `@xyflow/react` (peer) |
-| `symflow`            | All of the above re-exported                                                 | all                    |
+| Import               | Contents                                                                      | Extra deps             |
+|----------------------|-------------------------------------------------------------------------------|------------------------|
+| `symflow/engine`     | `WorkflowEngine`, `validateDefinition`, `analyzeWorkflow`, types              | none                   |
+| `symflow/subject`    | `Workflow<T>`, `createWorkflow`, `propertyMarkingStore`, `methodMarkingStore` | none                   |
+| `symflow/yaml`       | Symfony YAML import/export                                                    | `js-yaml`              |
+| `symflow/json`       | JSON import/export                                                            | none                   |
+| `symflow/typescript` | TypeScript codegen from a definition                                          | none                   |
+| `symflow/php`        | PHP/Laraflow codegen from a definition                                        | none                   |
+| `symflow/mermaid`    | Mermaid `stateDiagram-v2` export                                              | none                   |
+| `symflow/graphviz`   | Graphviz DOT digraph export                                                   | none                   |
+| `symflow/types`      | `WorkflowMeta`, `TransitionListener`, defaults                                | none                   |
+| `symflow/react-flow` | React Flow node/edge types, graph utilities                                   | `@xyflow/react` (peer) |
+| `symflow`            | All of the above re-exported                                                  | all                    |
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
-| [Getting Started](./docs/getting-started.md) | Installation, first workflow, subpath imports |
-| [Engine API](./docs/engine-api.md) | WorkflowEngine, events, guards, validation, pattern analysis |
-| [Subject API](./docs/subject-api.md) | Workflow\<T\>, marking stores, subject events |
-| [Weighted Arcs](./docs/weighted-arcs.md) | Multi-token transitions |
-| [Middleware](./docs/middleware.md) | Composable lifecycle hooks |
-| [CLI](./docs/cli.md) | validate, mermaid, dot commands |
-| [Persistence Formats](./docs/persistence-formats.md) | YAML, JSON, TypeScript, PHP, Mermaid, Graphviz |
+| Guide                                                | Description                                                  |
+|------------------------------------------------------|--------------------------------------------------------------|
+| [Getting Started](./docs/getting-started.md)         | Installation, first workflow, subpath imports                |
+| [Concepts](./docs/concepts.md)                       | Mental model: markings, tokens, two workflow types           |
+| [Engine API](./docs/engine-api.md)                   | WorkflowEngine, events, guards, validation, pattern analysis |
+| [Subject API](./docs/subject-api.md)                 | Workflow\<T\>, marking stores, subject events                |
+| [Weighted Arcs](./docs/weighted-arcs.md)             | Multi-token transitions                                      |
+| [Middleware](./docs/middleware.md)                   | Composable lifecycle hooks                                   |
+| [CLI](./docs/cli.md)                                 | validate, mermaid, dot commands                              |
+| [Persistence Formats](./docs/persistence-formats.md) | YAML, JSON, TypeScript, PHP, Mermaid, Graphviz               |
 
 ## React Flow Adapter
 

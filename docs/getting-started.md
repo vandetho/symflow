@@ -93,6 +93,7 @@ import { exportWorkflowDot } from "symflow/graphviz";    // Graphviz DOT
 
 ## Next Steps
 
+- [Concepts](./concepts.md) -- the mental model: markings, tokens, why two types exist
 - [CLI](./cli.md) -- validate and export from the command line
 - [Weighted Arcs](./weighted-arcs.md) -- transitions that consume/produce multiple tokens
 - [Middleware](./middleware.md) -- wrap transitions with logging, metrics, etc.
