@@ -39,7 +39,7 @@ jobs:
               with:
                   client-id: ${{ secrets.BOT_CLIENT_ID }}
                   private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-            - uses: googleapis/release-please-action@v4
+            - uses: googleapis/release-please-action@v5
               with:
                   release-type: node
                   token: ${{ steps.token.outputs.token }}
