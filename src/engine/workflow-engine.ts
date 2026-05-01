@@ -240,10 +240,14 @@ export class WorkflowEngine {
             // 7. Completed
             this.emit("completed", transition);
 
-            // 8. Announce — fire for each newly enabled transition
+            // 8. Announce — fire once per currently-enabled transition, with
+            // the *enabled* transition in the event payload (not the applied
+            // one). This lets listeners use `engine.on("announce", { transition: "X" }, …)`
+            // to react when X becomes reachable, mirroring Symfony's
+            // `workflow.<name>.announce.<X>` event-name idiom.
             const enabled = this.getEnabledTransitions();
-            for (let i = 0; i < enabled.length; i++) {
-                this.emit("announce", transition);
+            for (const next of enabled) {
+                this.emit("announce", next);
             }
 
             return this.getMarking();

@@ -366,6 +366,39 @@ describe("WorkflowEngine — events", () => {
         expect(listener).not.toHaveBeenCalled();
     });
 
+    it("announce event carries the newly-reachable transition, not the applied one", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const announced: string[] = [];
+        engine.on("announce", (e) => announced.push(e.transition.name));
+
+        // After applying "submit", "approve" and "reject" become enabled —
+        // both should be announced (not "submit" repeated).
+        engine.apply("submit");
+
+        expect(announced.sort()).toEqual(["approve", "reject"]);
+    });
+
+    it("announce filter matches a specific newly-reachable transition", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const calls: string[] = [];
+        engine.on("announce", { transition: "approve" }, (e) => calls.push(e.transition.name));
+
+        engine.apply("submit"); // enables approve + reject
+        expect(calls).toEqual(["approve"]);
+    });
+
+    it("announce does not fire when no transitions are enabled post-apply", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        engine.apply("submit");
+        engine.apply("approve");
+
+        const announced: string[] = [];
+        engine.on("announce", (e) => announced.push(e.transition.name));
+        engine.apply("fulfill"); // terminal — no enabled transitions after
+
+        expect(announced).toEqual([]);
+    });
+
     it("rollback covers parallel from-places in a workflow", () => {
         const engine = new WorkflowEngine(articleReviewWorkflow);
         engine.apply("start_review");
