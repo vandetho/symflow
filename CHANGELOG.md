@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.0](https://github.com/vandetho/symflow/compare/v3.3.1...v3.4.0) (2026-05-01)
+
+
+### Features
+
+* **engine:** add ListenerFilter to scope listeners by transition ([dd0305a](https://github.com/vandetho/symflow/commit/dd0305a4494ceee9b2cbf825a2efe8c55c4b99d7))
+
 ## [3.3.1](https://github.com/vandetho/symflow/compare/v3.3.0...v3.3.1) (2026-05-01)
 
 
