@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.0](https://github.com/vandetho/symflow/compare/v3.4.1...v3.5.0) (2026-05-01)
+
+
+### Features
+
+* **engine:** add applyAsync, async middleware, and AsyncMarkingStore ([ce07d1e](https://github.com/vandetho/symflow/commit/ce07d1ea0326a3618966cb7419a9de4b4ec26673))
+
 ## [3.4.1](https://github.com/vandetho/symflow/compare/v3.4.0...v3.4.1) (2026-05-01)
 
 
