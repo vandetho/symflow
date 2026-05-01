@@ -164,6 +164,41 @@ describe("WorkflowEngine — guards", () => {
         });
         expect(engine.can("deny").allowed).toBe(true);
     });
+
+    it("uses structured reason from guard evaluator", () => {
+        const engine = new WorkflowEngine(guardedStateMachine, {
+            guardEvaluator: () => ({ allowed: false, reason: "Insufficient balance" }),
+        });
+        const result = engine.can("approve");
+        expect(result.allowed).toBe(false);
+        expect(result.blockers[0]).toEqual({
+            code: "guard_blocked",
+            message: "Insufficient balance",
+        });
+    });
+
+    it("uses custom code from guard evaluator and surfaces reason in apply()", () => {
+        const engine = new WorkflowEngine(guardedStateMachine, {
+            guardEvaluator: () => ({
+                allowed: false,
+                reason: "Balance below minimum",
+                code: "insufficient_funds",
+            }),
+        });
+        const result = engine.can("approve");
+        expect(result.blockers[0]).toEqual({
+            code: "insufficient_funds",
+            message: "Balance below minimum",
+        });
+        expect(() => engine.apply("approve")).toThrow(/Balance below minimum/);
+    });
+
+    it("accepts structured allowed result", () => {
+        const engine = new WorkflowEngine(guardedStateMachine, {
+            guardEvaluator: () => ({ allowed: true }),
+        });
+        expect(engine.can("approve").allowed).toBe(true);
+    });
 });
 
 describe("WorkflowEngine — events", () => {

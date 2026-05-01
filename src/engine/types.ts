@@ -92,10 +92,23 @@ export interface WorkflowEvent {
 
 export type WorkflowEventListener = (event: WorkflowEvent) => void;
 
+/**
+ * Structured result from a guard evaluator. When blocked, `reason` and `code`
+ * flow into the resulting `TransitionBlocker` so consumers can surface a
+ * specific message or i18n key without parsing the guard expression.
+ */
+export interface GuardResult {
+    allowed: boolean;
+    /** Human-readable reason. Becomes the blocker's `message` when blocked. */
+    reason?: string;
+    /** Custom blocker code. Defaults to `"guard_blocked"`. */
+    code?: string;
+}
+
 export type GuardEvaluator = (
     expression: string,
     context: { marking: Marking; transition: Transition },
-) => boolean;
+) => boolean | GuardResult;
 
 export type ValidationErrorType =
     | "no_initial_marking"

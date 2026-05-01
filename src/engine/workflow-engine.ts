@@ -132,14 +132,17 @@ export class WorkflowEngine {
 
         // Evaluate guard
         if (transition.guard) {
-            const guardPassed = this.guardEvaluator(transition.guard, {
+            const guardResult = this.guardEvaluator(transition.guard, {
                 marking: this.getMarking(),
                 transition,
             });
-            if (!guardPassed) {
+            const allowed = typeof guardResult === "boolean" ? guardResult : guardResult.allowed;
+            if (!allowed) {
+                const structured = typeof guardResult === "object" ? guardResult : null;
                 blockers.push({
-                    code: "guard_blocked",
-                    message: `Guard "${transition.guard}" blocked the transition`,
+                    code: structured?.code ?? "guard_blocked",
+                    message:
+                        structured?.reason ?? `Guard "${transition.guard}" blocked the transition`,
                 });
                 return { allowed: false, blockers };
             }

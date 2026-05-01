@@ -1,4 +1,5 @@
 import type {
+    GuardResult,
     Marking,
     Transition,
     WorkflowEvent,
@@ -32,7 +33,7 @@ export interface SubjectGuardContext<T> {
 export type SubjectGuardEvaluator<T> = (
     expression: string,
     context: SubjectGuardContext<T>,
-) => boolean;
+) => boolean | GuardResult;
 
 export interface SubjectMiddlewareContext<T> extends MiddlewareContext {
     readonly subject: T;
@@ -43,4 +44,11 @@ export type SubjectMiddleware<T> = (
     next: () => Marking,
 ) => Marking;
 
-export type { Marking, Transition, WorkflowEvent, WorkflowEventType, MiddlewareContext };
+export type {
+    GuardResult,
+    Marking,
+    Transition,
+    WorkflowEvent,
+    WorkflowEventType,
+    MiddlewareContext,
+};
