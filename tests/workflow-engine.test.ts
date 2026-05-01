@@ -319,6 +319,53 @@ describe("WorkflowEngine — events", () => {
         expect(engine.getMarking()).toEqual(before);
     });
 
+    it("filter narrows listener to a single transition by name", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const calls: string[] = [];
+        engine.on("entered", { transition: "submit" }, (e) => calls.push(e.transition.name));
+
+        engine.apply("submit");
+        engine.apply("approve");
+        engine.apply("fulfill");
+
+        expect(calls).toEqual(["submit"]);
+    });
+
+    it("filter narrows listener to multiple transitions via array", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const calls: string[] = [];
+        engine.on("entered", { transition: ["submit", "fulfill"] }, (e) =>
+            calls.push(e.transition.name),
+        );
+
+        engine.apply("submit");
+        engine.apply("approve");
+        engine.apply("fulfill");
+
+        expect(calls).toEqual(["submit", "fulfill"]);
+    });
+
+    it("listener without filter still fires for every transition", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const calls: string[] = [];
+        engine.on("entered", (e) => calls.push(e.transition.name));
+
+        engine.apply("submit");
+        engine.apply("approve");
+
+        expect(calls).toEqual(["submit", "approve"]);
+    });
+
+    it("unsubscribe works on filtered listener", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const listener = vi.fn();
+        const unsub = engine.on("entered", { transition: "submit" }, listener);
+        unsub();
+
+        engine.apply("submit");
+        expect(listener).not.toHaveBeenCalled();
+    });
+
     it("rollback covers parallel from-places in a workflow", () => {
         const engine = new WorkflowEngine(articleReviewWorkflow);
         engine.apply("start_review");

@@ -1,5 +1,6 @@
 import type {
     GuardResult,
+    ListenerFilter,
     Marking,
     Transition,
     WorkflowEvent,
@@ -46,6 +47,7 @@ export type SubjectMiddleware<T> = (
 
 export type {
     GuardResult,
+    ListenerFilter,
     Marking,
     Transition,
     WorkflowEvent,

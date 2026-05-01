@@ -93,6 +93,17 @@ export interface WorkflowEvent {
 export type WorkflowEventListener = (event: WorkflowEvent) => void;
 
 /**
+ * Narrow the events a listener receives without filtering by hand inside the
+ * listener body. Pass to `engine.on(type, filter, listener)`.
+ *
+ * `transition` matches the event when the fired transition's name equals the
+ * filter value (or is in the array). When omitted, all transitions match.
+ */
+export interface ListenerFilter {
+    transition?: string | string[];
+}
+
+/**
  * Structured result from a guard evaluator. When blocked, `reason` and `code`
  * flow into the resulting `TransitionBlocker` so consumers can surface a
  * specific message or i18n key without parsing the guard expression.

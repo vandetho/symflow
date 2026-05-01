@@ -8,11 +8,22 @@ import type {
     WorkflowEventListener,
     WorkflowEvent,
     GuardEvaluator,
+    ListenerFilter,
     MiddlewareContext,
     WorkflowMiddleware,
 } from "./types";
 
 const defaultGuardEvaluator: GuardEvaluator = () => true;
+
+/** Returns true if the event matches the listener filter. Exported for the
+ *  subject `Workflow` facade, which mirrors the same filter semantics. */
+export function matchesFilter(event: WorkflowEvent, filter: ListenerFilter): boolean {
+    if (filter.transition !== undefined) {
+        const targets = Array.isArray(filter.transition) ? filter.transition : [filter.transition];
+        if (!targets.includes(event.transition.name)) return false;
+    }
+    return true;
+}
 
 export class WorkflowEngine {
     private definition: WorkflowDefinition;
@@ -248,13 +259,39 @@ export class WorkflowEngine {
     }
 
     /** Register an event listener. Returns an unsubscribe function. */
-    on(type: WorkflowEventType, listener: WorkflowEventListener): () => void {
+    on(type: WorkflowEventType, listener: WorkflowEventListener): () => void;
+    /**
+     * Register an event listener that only fires when the event matches the
+     * given filter. Useful to scope a listener to a specific transition
+     * without filtering inside the listener body.
+     */
+    on(
+        type: WorkflowEventType,
+        filter: ListenerFilter,
+        listener: WorkflowEventListener,
+    ): () => void;
+    on(
+        type: WorkflowEventType,
+        filterOrListener: ListenerFilter | WorkflowEventListener,
+        maybeListener?: WorkflowEventListener,
+    ): () => void {
+        const [filter, listener]: [ListenerFilter | undefined, WorkflowEventListener] =
+            typeof filterOrListener === "function"
+                ? [undefined, filterOrListener]
+                : [filterOrListener, maybeListener!];
+
+        const wrapped: WorkflowEventListener = filter
+            ? (event) => {
+                  if (matchesFilter(event, filter)) listener(event);
+              }
+            : listener;
+
         if (!this.listeners.has(type)) {
             this.listeners.set(type, new Set());
         }
-        this.listeners.get(type)!.add(listener);
+        this.listeners.get(type)!.add(wrapped);
         return () => {
-            this.listeners.get(type)?.delete(listener);
+            this.listeners.get(type)?.delete(wrapped);
         };
     }
 

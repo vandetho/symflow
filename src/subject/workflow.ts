@@ -1,5 +1,6 @@
-import { WorkflowEngine } from "../engine";
+import { WorkflowEngine, matchesFilter } from "../engine";
 import type {
+    ListenerFilter,
     Marking,
     Transition,
     TransitionResult,
@@ -90,11 +91,32 @@ export class Workflow<T> {
         }
     }
 
-    on(type: WorkflowEventType, listener: SubjectEventListener<T>): () => void {
+    on(type: WorkflowEventType, listener: SubjectEventListener<T>): () => void;
+    on(
+        type: WorkflowEventType,
+        filter: ListenerFilter,
+        listener: SubjectEventListener<T>,
+    ): () => void;
+    on(
+        type: WorkflowEventType,
+        filterOrListener: ListenerFilter | SubjectEventListener<T>,
+        maybeListener?: SubjectEventListener<T>,
+    ): () => void {
+        const [filter, listener]: [ListenerFilter | undefined, SubjectEventListener<T>] =
+            typeof filterOrListener === "function"
+                ? [undefined, filterOrListener]
+                : [filterOrListener, maybeListener!];
+
+        const wrapped: SubjectEventListener<T> = filter
+            ? (event) => {
+                  if (matchesFilter(event, filter)) listener(event);
+              }
+            : listener;
+
         if (!this.listeners.has(type)) this.listeners.set(type, new Set());
-        this.listeners.get(type)!.add(listener);
+        this.listeners.get(type)!.add(wrapped);
         return () => {
-            this.listeners.get(type)?.delete(listener);
+            this.listeners.get(type)?.delete(wrapped);
         };
     }
 

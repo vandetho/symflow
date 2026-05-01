@@ -85,6 +85,21 @@ describe("Workflow<T> — subject-driven API", () => {
         workflow.apply(order, "fulfill");
         expect(order.status).toBe("fulfilled");
     });
+
+    it("listener filter narrows by transition name on subject Workflow", () => {
+        const workflow = createWorkflow<Order>(orderStateMachine, {
+            markingStore: propertyMarkingStore("status"),
+        });
+        const order: Order = { id: "1", status: "draft", amount: 100 };
+        const calls: string[] = [];
+        workflow.on("entered", { transition: "approve" }, (e) => calls.push(e.transition.name));
+
+        workflow.apply(order, "submit");
+        workflow.apply(order, "approve");
+        workflow.apply(order, "fulfill");
+
+        expect(calls).toEqual(["approve"]);
+    });
 });
 
 describe("propertyMarkingStore", () => {
