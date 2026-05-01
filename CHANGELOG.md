@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/vandetho/symflow/compare/v3.3.0...v3.3.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* **engine:** roll back marking when an event listener throws ([f6a8ddf](https://github.com/vandetho/symflow/commit/f6a8ddf5aa2db8d05fba5eb551270a593fb21e89))
+
 ## [3.3.0](https://github.com/vandetho/symflow/compare/v3.2.0...v3.3.0) (2026-05-01)
 
 
