@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.1](https://github.com/vandetho/symflow/compare/v3.5.0...v3.5.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* **engine:** suppress promise rejection before strict-mode throw ([e9bf9d8](https://github.com/vandetho/symflow/commit/e9bf9d854d48657ee53a5362c4c6020a84025c2a))
+
 ## [3.5.0](https://github.com/vandetho/symflow/compare/v3.4.1...v3.5.0) (2026-05-01)
 
 
