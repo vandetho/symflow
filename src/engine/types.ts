@@ -90,7 +90,12 @@ export interface WorkflowEvent {
     workflowName: string;
 }
 
-export type WorkflowEventListener = (event: WorkflowEvent) => void;
+/**
+ * Event listener. Sync `apply()` discards any returned promise (and warns,
+ * unless `strictSyncListeners: true` is set, in which case it throws).
+ * Async `applyAsync()` awaits the promise sequentially with full atomicity.
+ */
+export type WorkflowEventListener = (event: WorkflowEvent) => void | Promise<void>;
 
 /**
  * Narrow the events a listener receives without filtering by hand inside the
@@ -150,3 +155,14 @@ export interface MiddlewareContext {
 }
 
 export type WorkflowMiddleware = (context: MiddlewareContext, next: () => Marking) => Marking;
+
+/**
+ * Async middleware. Runs only inside `applyAsync()`. Sync middleware is not
+ * promoted into the async chain — see RFC docs/rfcs/async-listeners.md for
+ * the rationale (sync middleware that calls `next()` expects a sync return,
+ * which can't be satisfied when the inner chain is async).
+ */
+export type WorkflowMiddlewareAsync = (
+    context: MiddlewareContext,
+    next: () => Promise<Marking>,
+) => Promise<Marking>;

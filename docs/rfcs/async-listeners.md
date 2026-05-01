@@ -1,11 +1,11 @@
 # RFC: Async Listener Support
 
-**Status:** Proposed
+**Status:** Implemented
 **Last updated:** 2026-05-01
 
-Design proposal for letting event listeners, middleware, and marking stores do asynchronous work without losing the atomicity guarantees that `apply()` already provides for sync code.
+Design rationale for letting event listeners, middleware, and marking stores do asynchronous work without losing the atomicity guarantees that `apply()` already provides for sync code.
 
-This document is **a design proposal, not a description of shipped behavior.** Until this lands, listeners returning promises during `engine.apply()` are silently discarded.
+This document is preserved for historical context. For user-facing usage, see [`docs/engine-api.md`](../engine-api.md), [`docs/subject-api.md`](../subject-api.md), and [`docs/middleware.md`](../middleware.md).
 
 ---
 
@@ -24,7 +24,7 @@ Today this has three failure modes:
 
 1. **The promise is silently discarded** — `apply()` returns before `db.log` resolves. Race conditions; no way to know when listeners finish.
 2. **Unhandled rejections** — if `db.log` throws, the rejection bubbles to `process.on("unhandledRejection")`, not to the caller of `apply()`.
-3. **Atomicity regression** — the rollback contract (added in 3.3.1) only catches *synchronous* throws inside `applyCore`. An async listener rejecting *after* `apply()` returns leaves the marking already updated, with no way to roll back.
+3. **Atomicity regression** — the rollback contract (added in 3.3.1) only catches _synchronous_ throws inside `applyCore`. An async listener rejecting _after_ `apply()` returns leaves the marking already updated, with no way to roll back.
 
 The same applies to middleware (sync-only today) and marking stores (sync-only today).
 
@@ -32,15 +32,15 @@ The same applies to middleware (sync-only today) and marking stores (sync-only t
 
 ## Decisions
 
-| # | Question | Decision |
-| - | -------- | -------- |
-| 1 | One method or two? | **Add `applyAsync()`** parallel to `apply()`; do not break the existing sync API |
-| 2 | Listener signature | **Unified:** `(event) => void \| Promise<void>` |
-| 3 | Middleware signature | **Sync + async as a union** type; existing middleware unchanged |
-| 4 | Marking store | **Bundle `AsyncMarkingStore<T>`** in the same release |
-| 2a | Listener returns promise during sync `apply()` | **Warn once per listener**, with opt-in throw via `strictSyncListeners: true` |
+| #   | Question                                       | Decision                                                                         |
+| --- | ---------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1   | One method or two?                             | **Add `applyAsync()`** parallel to `apply()`; do not break the existing sync API |
+| 2   | Listener signature                             | **Unified:** `(event) => void \| Promise<void>`                                  |
+| 3   | Middleware signature                           | **Sync + async as a union** type; existing middleware unchanged                  |
+| 4   | Marking store                                  | **Bundle `AsyncMarkingStore<T>`** in the same release                            |
+| 2a  | Listener returns promise during sync `apply()` | **Warn once per listener**, with opt-in throw via `strictSyncListeners: true`    |
 
-The driving principle: *zero overhead for sync users, opt-in async with full atomicity guarantees.*
+The driving principle: _zero overhead for sync users, opt-in async with full atomicity guarantees._
 
 ---
 
@@ -59,8 +59,8 @@ The same listener works for both `apply()` and `applyAsync()`. The user decides 
 
 ```ts
 class WorkflowEngine {
-    apply(transitionName: string): Marking;                    // unchanged
-    applyAsync(transitionName: string): Promise<Marking>;      // new
+    apply(transitionName: string): Marking; // unchanged
+    applyAsync(transitionName: string): Promise<Marking>; // new
 }
 ```
 
@@ -91,10 +91,7 @@ Detection cost is one `instanceof Promise` check on each listener's return value
 ### Middleware signature (Decision 3)
 
 ```ts
-export type WorkflowMiddleware = (
-    context: MiddlewareContext,
-    next: () => Marking,
-) => Marking;
+export type WorkflowMiddleware = (context: MiddlewareContext, next: () => Marking) => Marking;
 
 export type WorkflowMiddlewareAsync = (
     context: MiddlewareContext,
@@ -102,7 +99,7 @@ export type WorkflowMiddlewareAsync = (
 ) => Promise<Marking>;
 ```
 
-`apply()` accepts only sync middleware. `applyAsync()` accepts the union — sync middleware is wrapped automatically, async middleware is awaited. Engine option:
+`apply()` runs only `middleware` (sync). `applyAsync()` runs only `asyncMiddleware`. Engine option:
 
 ```ts
 interface WorkflowEngineOptions {
@@ -111,7 +108,9 @@ interface WorkflowEngineOptions {
 }
 ```
 
-Two slots rather than one tagged-union slot — keeps both call paths' type-checking strict. `applyAsync()` runs `asyncMiddleware` on top of `middleware`, both awaited.
+**Sync middleware is not auto-promoted into the async chain.** A sync middleware that calls `next()` expects a `Marking` return; in an async chain, `next()` returns `Promise<Marking>`, and there's no way to bridge sync code waiting on an async value (Node has no blocking await). The honest answer is to keep the chains separate: if you want the same logic in both paths, register it twice (once via `use()`, once via `useAsync()` with `Promise.resolve(next())` semantics).
+
+Two slots rather than one tagged-union slot — keeps both call paths' type-checking strict and avoids the mixed-mode pitfall described above.
 
 ### Async marking stores (Decision 4)
 
@@ -162,7 +161,7 @@ async applyAsync(name: string): Promise<Marking> {
 
 Both rejected promises and synchronous throws unwind the same way: marking restored, error re-thrown.
 
-For async marking stores, an additional concern: if `markingStore.write()` rejects *after* `applyCore` succeeds, the engine's in-memory marking is updated but the durable store is not. The `Workflow.applyAsync()` facade restores the engine snapshot if the store write fails — so engine state stays consistent with store state.
+For async marking stores, an additional concern: if `markingStore.write()` rejects _after_ `applyCore` succeeds, the engine's in-memory marking is updated but the durable store is not. The `Workflow.applyAsync()` facade restores the engine snapshot if the store write fails — so engine state stays consistent with store state.
 
 ---
 
@@ -181,7 +180,7 @@ Consumers who want async opt in by:
 2. Optionally passing `asyncMarkingStore` instead of `markingStore`.
 3. Optionally passing `asyncMiddleware` instead of (or alongside) `middleware`.
 
-The only behavioral change for existing code: listeners that *currently* return promises during sync `apply()` will start emitting a warning to `console.warn`. They were already broken (just silently); this surfaces the bug.
+The only behavioral change for existing code: listeners that _currently_ return promises during sync `apply()` will start emitting a warning to `console.warn`. They were already broken (just silently); this surfaces the bug.
 
 ---
 
@@ -200,21 +199,21 @@ The only behavioral change for existing code: listeners that *currently* return 
 
 - `types.ts`: extend `WorkflowEventListener` to `void | Promise<void>` return; add `WorkflowMiddlewareAsync`; add `AsyncMarkingStore<T>` (re-exported from subject)
 - `workflow-engine.ts`:
-  - Add `applyAsync(): Promise<Marking>`
-  - Add `private async applyCoreAsync(transition: Transition): Promise<Marking>` — mirror of `applyCore` with `await` on each emit
-  - Add `private async emitAsync(type, transition): Promise<void>` — sequential await
-  - Add `strictSyncListeners` option; warn-or-throw on detected promise return in sync `emit()`
-  - Add `asyncMiddleware` option
+    - Add `applyAsync(): Promise<Marking>`
+    - Add `private async applyCoreAsync(transition: Transition): Promise<Marking>` — mirror of `applyCore` with `await` on each emit
+    - Add `private async emitAsync(type, transition): Promise<void>` — sequential await
+    - Add `strictSyncListeners` option; warn-or-throw on detected promise return in sync `emit()`
+    - Add `asyncMiddleware` option
 
 ### Subject (`src/subject/`)
 
 - `types.ts`: add `AsyncMarkingStore<T>`
 - `workflow.ts`:
-  - Accept `asyncMarkingStore` in `CreateWorkflowOptions<T>`
-  - Add `applyAsync(subject, transitionName): Promise<Marking>`
-  - Add `canAsync(subject, transitionName): Promise<TransitionResult>` (reads via async store)
-  - Constructor: throw if both stores provided
-  - `apply()` throws if only async store is configured
+    - Accept `asyncMarkingStore` in `CreateWorkflowOptions<T>`
+    - Add `applyAsync(subject, transitionName): Promise<Marking>`
+    - Add `canAsync(subject, transitionName): Promise<TransitionResult>` (reads via async store)
+    - Constructor: throw if both stores provided
+    - `apply()` throws if only async store is configured
 
 ### Tests
 
@@ -237,10 +236,12 @@ The only behavioral change for existing code: listeners that *currently* return 
 
 ---
 
-## Open questions
+## Resolved during implementation
 
-- **Should `applyAsync()` accept sync listeners' returned promises as a hard error rather than awaiting them?** Argument for: anyone calling `applyAsync()` is opting in to async, so a sync-style listener that *accidentally* becomes async (returns a promise) was probably intended. Argument against: `void | Promise<void>` is the contract; both branches must work. **Tentative answer:** await them. Same listener, same contract on both call paths.
+- **`applyAsync()` and sync-style listeners.** `applyAsync()` awaits any returned promise (including from listeners that happened to be sync — a `void` return is just an immediately-resolved value). Same listener, same contract on both call paths.
 
-- **How should `AnnounceEvent`'s post-3.4.0 newly-reachable transition payload interact with async listeners?** Likely no special handling — the event payload is captured before listeners run, async or not. **Tentative answer:** no change needed.
+- **Announce event payload with async listeners.** No special handling needed; the event payload is captured before listeners run, async or not.
 
-- **If a sync middleware in the chain calls `next()` from `applyAsync()`, does `next()` return `Marking` or `Promise<Marking>`?** Type-level: the union resolves at the boundary. Runtime: sync middleware doesn't know it's in an async chain, so `next()` returns whatever the inner chain returns. If the inner chain has an async middleware, `next()` returns a Promise that the sync middleware will fail to await. **Tentative answer:** mixed sync-around-async middleware is unsupported; if any middleware is async, all outer middleware should also be async (or sync middleware that doesn't inspect `next()`'s return type). Documented as a constraint.
+- **Mixed sync-around-async middleware.** Resolved by keeping the chains fully separate: `apply()` runs only `middleware`, `applyAsync()` runs only `asyncMiddleware`. Sync middleware is **not** promoted into the async chain. Users who want the same logic in both paths register it twice. This avoids the unsolvable problem of a sync middleware needing to await an async `next()`.
+
+- **Suppressing unhandled rejections from discarded sync-listener promises.** When a listener returns a Promise during sync `apply()`, the engine attaches a no-op `.catch()` to suppress unhandled-rejection noise — without this, a rejecting async listener would crash the process via `unhandledRejection` in addition to logging the warning. The actionable signal is the one-time warning (or strict-mode throw); suppressed rejections are an intentional tradeoff.

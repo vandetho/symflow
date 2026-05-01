@@ -11,6 +11,7 @@ import type {
     ListenerFilter,
     MiddlewareContext,
     WorkflowMiddleware,
+    WorkflowMiddlewareAsync,
 } from "./types";
 
 const defaultGuardEvaluator: GuardEvaluator = () => true;
@@ -25,6 +26,20 @@ export function matchesFilter(event: WorkflowEvent, filter: ListenerFilter): boo
     return true;
 }
 
+export interface WorkflowEngineOptions {
+    guardEvaluator?: GuardEvaluator;
+    /** Sync middleware. Runs in `apply()` only. */
+    middleware?: WorkflowMiddleware[];
+    /** Async middleware. Runs in `applyAsync()` only. */
+    asyncMiddleware?: WorkflowMiddlewareAsync[];
+    /**
+     * If true, sync `apply()` throws when a listener returns a Promise (instead
+     * of just warning). Use this to enforce that all listeners are sync in
+     * codebases that mix sync and async paths.
+     */
+    strictSyncListeners?: boolean;
+}
+
 export class WorkflowEngine {
     private definition: WorkflowDefinition;
     private marking: Marking;
@@ -32,21 +47,28 @@ export class WorkflowEngine {
     private guardEvaluator: GuardEvaluator;
     private placeNames: Set<string>;
     private middleware: WorkflowMiddleware[];
+    private asyncMiddleware: WorkflowMiddlewareAsync[];
+    private strictSyncListeners: boolean;
+    private warnedListeners = new WeakSet<WorkflowEventListener>();
 
-    constructor(
-        definition: WorkflowDefinition,
-        options?: { guardEvaluator?: GuardEvaluator; middleware?: WorkflowMiddleware[] },
-    ) {
+    constructor(definition: WorkflowDefinition, options?: WorkflowEngineOptions) {
         this.definition = definition;
         this.guardEvaluator = options?.guardEvaluator ?? defaultGuardEvaluator;
         this.middleware = options?.middleware ?? [];
+        this.asyncMiddleware = options?.asyncMiddleware ?? [];
+        this.strictSyncListeners = options?.strictSyncListeners ?? false;
         this.placeNames = new Set(definition.places.map((p) => p.name));
         this.marking = this.buildInitialMarking();
     }
 
-    /** Register a middleware. Middleware wraps the entire apply() lifecycle. */
+    /** Register a sync middleware. Wraps `apply()` only. */
     use(mw: WorkflowMiddleware): void {
         this.middleware.push(mw);
+    }
+
+    /** Register an async middleware. Wraps `applyAsync()` only. */
+    useAsync(mw: WorkflowMiddlewareAsync): void {
+        this.asyncMiddleware.push(mw);
     }
 
     private buildInitialMarking(): Marking {
@@ -257,6 +279,84 @@ export class WorkflowEngine {
         }
     }
 
+    /**
+     * Async variant of `apply()`. Awaits each listener's returned promise
+     * sequentially in registration order, and runs only `asyncMiddleware`
+     * (sync middleware is not promoted into the async chain — see
+     * `docs/rfcs/async-listeners.md`).
+     *
+     * Atomic: if any listener rejects or any middleware throws, the marking
+     * is restored to its pre-apply state and the error is re-thrown.
+     */
+    async applyAsync(transitionName: string): Promise<Marking> {
+        const result = this.can(transitionName);
+        if (!result.allowed) {
+            throw new Error(
+                `Cannot apply transition "${transitionName}": ${result.blockers.map((b) => b.message).join(", ")}`,
+            );
+        }
+
+        const transition = this.definition.transitions.find((t) => t.name === transitionName)!;
+
+        if (this.asyncMiddleware.length === 0) {
+            return this.applyCoreAsync(transition);
+        }
+
+        const context: MiddlewareContext = {
+            definition: this.definition,
+            transition,
+            marking: this.getMarking(),
+            workflowName: this.definition.name,
+        };
+
+        const chain = this.asyncMiddleware.reduceRight<() => Promise<Marking>>(
+            (next, mw) => () => mw(context, next),
+            () => this.applyCoreAsync(transition),
+        );
+
+        return chain();
+    }
+
+    private async applyCoreAsync(transition: Transition): Promise<Marking> {
+        const snapshot = { ...this.marking };
+
+        try {
+            await this.emitAsync("guard", transition);
+
+            for (let i = 0; i < transition.froms.length; i++) {
+                await this.emitAsync("leave", transition);
+            }
+            const cw = transition.consumeWeight ?? 1;
+            for (const from of transition.froms) {
+                this.marking[from] = Math.max(0, (this.marking[from] ?? 0) - cw);
+            }
+
+            await this.emitAsync("transition", transition);
+
+            for (let i = 0; i < transition.tos.length; i++) {
+                await this.emitAsync("enter", transition);
+            }
+
+            const pw = transition.produceWeight ?? 1;
+            for (const to of transition.tos) {
+                this.marking[to] = (this.marking[to] ?? 0) + pw;
+            }
+
+            await this.emitAsync("entered", transition);
+            await this.emitAsync("completed", transition);
+
+            const enabled = this.getEnabledTransitions();
+            for (const next of enabled) {
+                await this.emitAsync("announce", next);
+            }
+
+            return this.getMarking();
+        } catch (err) {
+            this.marking = snapshot;
+            throw err;
+        }
+    }
+
     /** Reset marking to initial state */
     reset(): void {
         this.marking = this.buildInitialMarking();
@@ -286,7 +386,7 @@ export class WorkflowEngine {
 
         const wrapped: WorkflowEventListener = filter
             ? (event) => {
-                  if (matchesFilter(event, filter)) listener(event);
+                  if (matchesFilter(event, filter)) return listener(event);
               }
             : listener;
 
@@ -306,6 +406,57 @@ export class WorkflowEngine {
             marking: this.getMarking(),
             workflowName: this.definition.name,
         };
-        this.listeners.get(type)?.forEach((listener) => listener(event));
+        this.listeners.get(type)?.forEach((listener) => {
+            const result = listener(event);
+            if (result instanceof Promise) {
+                this.handleSyncPromise(listener, type, result);
+            }
+        });
+    }
+
+    /**
+     * Sequentially await each listener's return value. Listeners run in
+     * registration order; if one rejects, later listeners do not run and
+     * the rejection bubbles up so the caller's try/catch (in applyCoreAsync)
+     * can roll back the marking.
+     */
+    private async emitAsync(type: WorkflowEventType, transition: Transition): Promise<void> {
+        const event: WorkflowEvent = {
+            type,
+            transition,
+            marking: this.getMarking(),
+            workflowName: this.definition.name,
+        };
+        const set = this.listeners.get(type);
+        if (!set) return;
+        for (const listener of set) {
+            await listener(event);
+        }
+    }
+
+    private handleSyncPromise(
+        listener: WorkflowEventListener,
+        type: WorkflowEventType,
+        promise: Promise<unknown>,
+    ): void {
+        if (this.strictSyncListeners) {
+            throw new Error(
+                `Listener for "${type}" returned a Promise during sync apply(). ` +
+                    `Use applyAsync() for async listeners, or remove strictSyncListeners.`,
+            );
+        }
+        // Suppress unhandled-rejection noise from the discarded promise — the
+        // warning below is the actionable signal. Without this, a rejecting
+        // async listener during sync apply() would crash the process via
+        // unhandledRejection in addition to logging the warning.
+        promise.catch(() => undefined);
+        if (!this.warnedListeners.has(listener)) {
+            this.warnedListeners.add(listener);
+            console.warn(
+                `[symflow] Listener for "${type}" returned a Promise during sync apply(). ` +
+                    `The promise is not awaited and rejections are suppressed. ` +
+                    `Use engine.applyAsync() if you need async listener support.`,
+            );
+        }
     }
 }

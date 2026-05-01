@@ -20,19 +20,22 @@ const engine = new WorkflowEngine(definition, {
 
 ### Methods
 
-| Method                       | Returns              | Description                                 |
-| ---------------------------- | -------------------- | ------------------------------------------- |
-| `getMarking()`               | `Marking`            | Current marking (place name to token count) |
-| `setMarking(marking)`        | `void`               | Override the current marking                |
-| `getInitialMarking()`        | `Marking`            | The initial marking from the definition     |
-| `getActivePlaces()`          | `string[]`           | Places with token count > 0                 |
-| `getEnabledTransitions()`    | `Transition[]`       | Transitions that can fire right now         |
-| `can(transitionName)`        | `TransitionResult`   | Check if a transition can fire              |
-| `apply(transitionName)`      | `Marking`            | Fire a transition (throws if blocked)       |
-| `use(middleware)`            | `void`               | Register a middleware                       |
-| `reset()`                    | `void`               | Reset to initial marking                    |
-| `on(eventType, listener)`    | `() => void`         | Subscribe to events (returns unsubscribe)   |
-| `getDefinition()`            | `WorkflowDefinition` | The underlying definition                   |
+| Method                       | Returns              | Description                                        |
+| ---------------------------- | -------------------- | -------------------------------------------------- |
+| `getMarking()`               | `Marking`            | Current marking (place name to token count)        |
+| `setMarking(marking)`        | `void`               | Override the current marking                       |
+| `getInitialMarking()`        | `Marking`            | The initial marking from the definition            |
+| `getActivePlaces()`          | `string[]`           | Places with token count > 0                        |
+| `getEnabledTransitions()`    | `Transition[]`       | Transitions that can fire right now                |
+| `can(transitionName)`        | `TransitionResult`   | Check if a transition can fire                     |
+| `apply(transitionName)`      | `Marking`            | Fire a transition (throws if blocked)              |
+| `applyAsync(transitionName)` | `Promise<Marking>`   | Async variant — awaits async listeners/middleware  |
+| `use(middleware)`            | `void`               | Register a sync middleware                         |
+| `useAsync(middleware)`       | `void`               | Register an async middleware                       |
+| `reset()`                    | `void`               | Reset to initial marking                           |
+| `on(eventType, listener)`    | `() => void`         | Subscribe to events (returns unsubscribe)          |
+| `on(type, filter, listener)` | `() => void`         | Filtered subscription (e.g. `{ transition: "X" }`) |
+| `getDefinition()`            | `WorkflowDefinition` | The underlying definition                          |
 
 ### `TransitionResult`
 
@@ -43,7 +46,7 @@ const result = engine.can("approve");
 
 if (!result.allowed) {
     for (const blocker of result.blockers) {
-        console.log(blocker.code);    // "not_in_place" | "guard_blocked" | "unknown_transition" | "invalid_marking"
+        console.log(blocker.code); // "not_in_place" | "guard_blocked" | "unknown_transition" | "invalid_marking"
         console.log(blocker.message); // human-readable explanation
     }
 }
@@ -53,27 +56,86 @@ if (!result.allowed) {
 
 The engine fires events in Symfony's exact order when `apply()` is called:
 
-| Order | Event        | When                                          |
-| ----- | ------------ | --------------------------------------------- |
-| 1     | `guard`      | Checks if the transition is allowed           |
-| 2     | `leave`      | Per source place, before tokens are removed   |
-| 3     | `transition` | After tokens are removed from source places   |
-| 4     | `enter`      | Per target place, before marking is updated   |
-| 5     | `entered`    | After marking is updated                      |
-| 6     | `completed`  | After the full transition is done             |
-| 7     | `announce`   | Per newly enabled transition                  |
+| Order | Event        | When                                        |
+| ----- | ------------ | ------------------------------------------- |
+| 1     | `guard`      | Checks if the transition is allowed         |
+| 2     | `leave`      | Per source place, before tokens are removed |
+| 3     | `transition` | After tokens are removed from source places |
+| 4     | `enter`      | Per target place, before marking is updated |
+| 5     | `entered`    | After marking is updated                    |
+| 6     | `completed`  | After the full transition is done           |
+| 7     | `announce`   | Per newly enabled transition                |
 
 ```ts
 engine.on("entered", (event) => {
-    console.log(event.type);          // "entered"
-    console.log(event.transition);    // { name, froms, tos, guard?, consumeWeight?, produceWeight? }
-    console.log(event.marking);       // { draft: 0, submitted: 1, ... }
-    console.log(event.workflowName);  // "order"
+    console.log(event.type); // "entered"
+    console.log(event.transition); // { name, froms, tos, guard?, consumeWeight?, produceWeight? }
+    console.log(event.marking); // { draft: 0, submitted: 1, ... }
+    console.log(event.workflowName); // "order"
 });
 
 // Unsubscribe
 const unsub = engine.on("guard", listener);
 unsub();
+```
+
+### Filtered listeners
+
+Narrow a listener to specific transitions without filtering inside the body:
+
+```ts
+engine.on("entered", { transition: "approve" }, (event) => {
+    // fires only when the "approve" transition triggered the event
+});
+
+engine.on("leave", { transition: ["submit", "reject"] }, listener);
+```
+
+The filter currently supports `transition: string | string[]`. Listeners registered without a filter still fire for every transition.
+
+## Async Apply
+
+Use `applyAsync()` when listeners or middleware need to do async work (database I/O, webhooks, queue dispatch). It mirrors `apply()` but awaits each listener's returned promise sequentially in registration order.
+
+```ts
+engine.on("entered", async (event) => {
+    await db.audit.insert({ event });
+});
+
+await engine.applyAsync("submit");
+```
+
+**Atomicity.** If any listener rejects or any async middleware throws, the marking is restored to its pre-apply state and the rejection is re-thrown — same all-or-nothing contract as sync `apply()`.
+
+**Sync `apply()` with async listeners.** If a listener returns a Promise during sync `apply()`, the promise is **not awaited**, the rejection is suppressed, and a one-time warning is logged:
+
+```
+[symflow] Listener for "entered" returned a Promise during sync apply().
+The promise is not awaited and rejections are suppressed.
+Use engine.applyAsync() if you need async listener support.
+```
+
+To enforce sync-only listeners and turn the warning into a thrown error:
+
+```ts
+new WorkflowEngine(definition, { strictSyncListeners: true });
+```
+
+**Async middleware.** Sync and async middleware run in separate chains. `apply()` runs only `middleware`; `applyAsync()` runs only `asyncMiddleware`. Sync middleware is **not** promoted into the async chain — see `docs/rfcs/async-listeners.md` for the rationale.
+
+```ts
+const engine = new WorkflowEngine(definition, {
+    asyncMiddleware: [
+        async (ctx, next) => {
+            await tracer.startSpan(ctx.transition.name);
+            try {
+                return await next();
+            } finally {
+                tracer.endSpan();
+            }
+        },
+    ],
+});
 ```
 
 ## Guards
@@ -119,16 +181,16 @@ if (!result.valid) {
 }
 ```
 
-| Error type                  | Description                                           |
-| --------------------------- | ----------------------------------------------------- |
-| `no_initial_marking`        | No initial marking defined                            |
-| `invalid_initial_marking`   | Initial marking references a non-existent place       |
-| `invalid_transition_source` | Transition `from` references a non-existent place     |
-| `invalid_transition_target` | Transition `to` references a non-existent place       |
-| `unreachable_place`         | Place cannot be reached from the initial marking (BFS)|
-| `dead_transition`           | Transition can never fire (source places unreachable) |
-| `orphan_place`              | Place has no incoming or outgoing transitions         |
-| `invalid_weight`            | Transition weight is not a positive integer           |
+| Error type                  | Description                                            |
+| --------------------------- | ------------------------------------------------------ |
+| `no_initial_marking`        | No initial marking defined                             |
+| `invalid_initial_marking`   | Initial marking references a non-existent place        |
+| `invalid_transition_source` | Transition `from` references a non-existent place      |
+| `invalid_transition_target` | Transition `to` references a non-existent place        |
+| `unreachable_place`         | Place cannot be reached from the initial marking (BFS) |
+| `dead_transition`           | Transition can never fire (source places unreachable)  |
+| `orphan_place`              | Place has no incoming or outgoing transitions          |
+| `invalid_weight`            | Transition weight is not a positive integer            |
 
 ## Pattern Analysis
 
@@ -137,8 +199,8 @@ import { analyzeWorkflow } from "symflow/engine";
 
 const analysis = analyzeWorkflow(definition);
 
-analysis.transitions["start_review"].pattern;  // "and-split"
-analysis.places["content_approved"].patterns;   // ["and-join"]
+analysis.transitions["start_review"].pattern; // "and-split"
+analysis.places["content_approved"].patterns; // ["and-join"]
 ```
 
 **Transition patterns:** `simple`, `and-split`, `and-join`, `and-split-join`

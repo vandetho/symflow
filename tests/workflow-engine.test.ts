@@ -417,6 +417,206 @@ describe("WorkflowEngine — events", () => {
     });
 });
 
+describe("WorkflowEngine — async listeners (applyAsync)", () => {
+    it("awaits async listeners in registration order", async () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const order: string[] = [];
+
+        engine.on("entered", async () => {
+            await new Promise((r) => setTimeout(r, 10));
+            order.push("first");
+        });
+        engine.on("entered", async () => {
+            order.push("second");
+        });
+
+        await engine.applyAsync("submit");
+        expect(order).toEqual(["first", "second"]);
+    });
+
+    it("rolls back marking when an async listener rejects", async () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const before = engine.getMarking();
+
+        engine.on("entered", async () => {
+            throw new Error("async boom");
+        });
+
+        await expect(engine.applyAsync("submit")).rejects.toThrow("async boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("rolls back when an async listener rejects between consume and produce", async () => {
+        // The `enter` event fires after from-tokens are removed but before
+        // to-tokens are added — the dangerous window. Verifies the rollback
+        // covers async rejections in this window.
+        const engine = new WorkflowEngine(orderStateMachine);
+        const before = engine.getMarking();
+
+        engine.on("enter", async () => {
+            throw new Error("enter async boom");
+        });
+
+        await expect(engine.applyAsync("submit")).rejects.toThrow("enter async boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("runs async middleware in chain order, awaits inner work", async () => {
+        const log: string[] = [];
+        const engine = new WorkflowEngine(orderStateMachine, {
+            asyncMiddleware: [
+                async (_ctx, next) => {
+                    log.push("outer-before");
+                    const m = await next();
+                    log.push("outer-after");
+                    return m;
+                },
+                async (_ctx, next) => {
+                    log.push("inner-before");
+                    await new Promise((r) => setTimeout(r, 5));
+                    const m = await next();
+                    log.push("inner-after");
+                    return m;
+                },
+            ],
+        });
+
+        await engine.applyAsync("submit");
+        expect(log).toEqual(["outer-before", "inner-before", "inner-after", "outer-after"]);
+    });
+
+    it("rolls back when an async middleware rejects", async () => {
+        const engine = new WorkflowEngine(orderStateMachine, {
+            asyncMiddleware: [
+                async () => {
+                    throw new Error("mw boom");
+                },
+            ],
+        });
+        const before = engine.getMarking();
+
+        await expect(engine.applyAsync("submit")).rejects.toThrow("mw boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("sync middleware does not run inside applyAsync", async () => {
+        const calls: string[] = [];
+        const engine = new WorkflowEngine(orderStateMachine, {
+            middleware: [
+                (_ctx, next) => {
+                    calls.push("sync");
+                    return next();
+                },
+            ],
+            asyncMiddleware: [
+                async (_ctx, next) => {
+                    calls.push("async");
+                    return next();
+                },
+            ],
+        });
+
+        await engine.applyAsync("submit");
+        expect(calls).toEqual(["async"]);
+    });
+
+    it("useAsync() registers async middleware at runtime", async () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const calls: string[] = [];
+        engine.useAsync(async (_ctx, next) => {
+            calls.push("hit");
+            return next();
+        });
+
+        await engine.applyAsync("submit");
+        expect(calls).toEqual(["hit"]);
+    });
+
+    it("applyAsync respects guards (blocked transitions throw)", async () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        await expect(engine.applyAsync("approve")).rejects.toThrow("Cannot apply transition");
+    });
+
+    it("applyAsync fires events in Symfony order", async () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const order: string[] = [];
+        for (const t of [
+            "guard",
+            "leave",
+            "transition",
+            "enter",
+            "entered",
+            "completed",
+        ] as const) {
+            engine.on(t, () => {
+                order.push(t);
+            });
+        }
+        await engine.applyAsync("submit");
+        expect(order).toEqual(["guard", "leave", "transition", "enter", "entered", "completed"]);
+    });
+});
+
+describe("WorkflowEngine — sync apply() with async listeners", () => {
+    it("warns once when a listener returns a Promise during sync apply()", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const engine = new WorkflowEngine(orderStateMachine);
+        engine.on("entered", async () => {
+            // returns a Promise — should warn during sync apply()
+        });
+
+        engine.apply("submit");
+        engine.apply("approve");
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toContain("returned a Promise during sync apply()");
+        warn.mockRestore();
+    });
+
+    it("strictSyncListeners: true throws when a listener returns a Promise", () => {
+        const engine = new WorkflowEngine(orderStateMachine, {
+            strictSyncListeners: true,
+        });
+        engine.on("entered", async () => {});
+
+        expect(() => engine.apply("submit")).toThrow(/returned a Promise during sync apply/);
+    });
+
+    it("strictSyncListeners rollback restores marking on detection", () => {
+        const engine = new WorkflowEngine(orderStateMachine, {
+            strictSyncListeners: true,
+        });
+        const before = engine.getMarking();
+        engine.on("entered", async () => {});
+
+        expect(() => engine.apply("submit")).toThrow();
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("suppresses unhandled-rejection from discarded listener promise", async () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const engine = new WorkflowEngine(orderStateMachine);
+
+        let unhandled = false;
+        const onRejection = () => {
+            unhandled = true;
+        };
+        process.once("unhandledRejection", onRejection);
+
+        engine.on("entered", async () => {
+            throw new Error("rejecting listener");
+        });
+
+        engine.apply("submit");
+        // Give the microtask queue a chance to flush
+        await new Promise((r) => setImmediate(r));
+
+        expect(unhandled).toBe(false);
+        process.removeListener("unhandledRejection", onRejection);
+        warn.mockRestore();
+    });
+});
+
 describe("WorkflowEngine — weighted arcs", () => {
     it("can() returns false when marking < consumeWeight", () => {
         const engine = new WorkflowEngine(weightedWorkflow);
