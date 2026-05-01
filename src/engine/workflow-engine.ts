@@ -151,7 +151,13 @@ export class WorkflowEngine {
         return { allowed: true, blockers: [] };
     }
 
-    /** Apply a transition and return the new marking */
+    /**
+     * Apply a transition and return the new marking.
+     *
+     * Atomic: if any event listener throws, the marking is restored to its
+     * pre-apply state and the error is re-thrown. Callers see all-or-nothing —
+     * either the transition fully succeeds or the engine is unchanged.
+     */
     apply(transitionName: string): Marking {
         const result = this.can(transitionName);
         if (!result.allowed) {
@@ -182,48 +188,58 @@ export class WorkflowEngine {
     }
 
     private applyCore(transition: Transition): Marking {
-        // Fire events in Symfony order:
-        // https://symfony.com/doc/current/workflow.html#using-events
+        // Snapshot for rollback if a listener throws partway through.
+        // Without this, a throw in `enter` leaves marking with from-tokens
+        // removed and to-tokens not yet added — a corrupted state.
+        const snapshot = { ...this.marking };
 
-        // 1. Guard (already checked in can(), but fire the event)
-        this.emit("guard", transition);
+        try {
+            // Fire events in Symfony order:
+            // https://symfony.com/doc/current/workflow.html#using-events
 
-        // 2. Leave — fire per from-place, then remove tokens
-        for (let i = 0; i < transition.froms.length; i++) {
-            this.emit("leave", transition);
+            // 1. Guard (already checked in can(), but fire the event)
+            this.emit("guard", transition);
+
+            // 2. Leave — fire per from-place, then remove tokens
+            for (let i = 0; i < transition.froms.length; i++) {
+                this.emit("leave", transition);
+            }
+            const cw = transition.consumeWeight ?? 1;
+            for (const from of transition.froms) {
+                this.marking[from] = Math.max(0, (this.marking[from] ?? 0) - cw);
+            }
+
+            // 3. Transition
+            this.emit("transition", transition);
+
+            // 4. Enter — fire BEFORE marking update (subject not yet in new place)
+            for (let i = 0; i < transition.tos.length; i++) {
+                this.emit("enter", transition);
+            }
+
+            // 5. Update marking (add tokens to target places)
+            const pw = transition.produceWeight ?? 1;
+            for (const to of transition.tos) {
+                this.marking[to] = (this.marking[to] ?? 0) + pw;
+            }
+
+            // 6. Entered — fire AFTER marking update (subject is now in new place)
+            this.emit("entered", transition);
+
+            // 7. Completed
+            this.emit("completed", transition);
+
+            // 8. Announce — fire for each newly enabled transition
+            const enabled = this.getEnabledTransitions();
+            for (let i = 0; i < enabled.length; i++) {
+                this.emit("announce", transition);
+            }
+
+            return this.getMarking();
+        } catch (err) {
+            this.marking = snapshot;
+            throw err;
         }
-        const cw = transition.consumeWeight ?? 1;
-        for (const from of transition.froms) {
-            this.marking[from] = Math.max(0, (this.marking[from] ?? 0) - cw);
-        }
-
-        // 3. Transition
-        this.emit("transition", transition);
-
-        // 4. Enter — fire BEFORE marking update (subject not yet in new place)
-        for (let i = 0; i < transition.tos.length; i++) {
-            this.emit("enter", transition);
-        }
-
-        // 5. Update marking (add tokens to target places)
-        const pw = transition.produceWeight ?? 1;
-        for (const to of transition.tos) {
-            this.marking[to] = (this.marking[to] ?? 0) + pw;
-        }
-
-        // 6. Entered — fire AFTER marking update (subject is now in new place)
-        this.emit("entered", transition);
-
-        // 7. Completed
-        this.emit("completed", transition);
-
-        // 8. Announce — fire for each newly enabled transition
-        const enabled = this.getEnabledTransitions();
-        for (let i = 0; i < enabled.length; i++) {
-            this.emit("announce", transition);
-        }
-
-        return this.getMarking();
     }
 
     /** Reset marking to initial state */

@@ -272,6 +272,69 @@ describe("WorkflowEngine — events", () => {
 
         expect(enterCount).toBe(2);
     });
+
+    it("rolls back marking when a 'leave' listener throws", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const before = engine.getMarking();
+        engine.on("leave", () => {
+            throw new Error("listener boom");
+        });
+
+        expect(() => engine.apply("submit")).toThrow("listener boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("rolls back marking when an 'enter' listener throws (mid-apply)", () => {
+        // The dangerous case: from-tokens already removed, to-tokens not yet
+        // added. Without rollback this would corrupt the marking.
+        const engine = new WorkflowEngine(orderStateMachine);
+        const before = engine.getMarking();
+        engine.on("enter", () => {
+            throw new Error("enter boom");
+        });
+
+        expect(() => engine.apply("submit")).toThrow("enter boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("rolls back marking when an 'entered' listener throws (post-apply)", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const before = engine.getMarking();
+        engine.on("entered", () => {
+            throw new Error("entered boom");
+        });
+
+        expect(() => engine.apply("submit")).toThrow("entered boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("rolls back marking when an 'announce' listener throws", () => {
+        const engine = new WorkflowEngine(orderStateMachine);
+        const before = engine.getMarking();
+        engine.on("announce", () => {
+            throw new Error("announce boom");
+        });
+
+        expect(() => engine.apply("submit")).toThrow("announce boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
+
+    it("rollback covers parallel from-places in a workflow", () => {
+        const engine = new WorkflowEngine(articleReviewWorkflow);
+        engine.apply("start_review");
+        engine.apply("approve_content");
+        engine.apply("approve_spelling");
+        const before = engine.getMarking();
+
+        engine.on("enter", () => {
+            throw new Error("multi-place boom");
+        });
+
+        // publish has from: [content_approved, spelling_approved] — both must
+        // be restored if a listener throws between consume and produce.
+        expect(() => engine.apply("publish")).toThrow("multi-place boom");
+        expect(engine.getMarking()).toEqual(before);
+    });
 });
 
 describe("WorkflowEngine — weighted arcs", () => {
