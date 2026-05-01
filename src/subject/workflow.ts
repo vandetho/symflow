@@ -129,12 +129,11 @@ export class Workflow<T> {
      * Async variant of `apply()`. Reads/writes via either a sync or an async
      * marking store; awaits async listeners and async middleware.
      *
-     * Atomic: if any listener rejects, middleware throws, or the marking
-     * store's `write()` rejects, the engine's marking is rolled back to its
-     * pre-apply state and the error is re-thrown. Note: if the durable store
-     * already partially persisted the new marking before rejecting, the
-     * caller is responsible for that recovery — the engine only restores its
-     * own in-memory state.
+     * Atomic from the subject's perspective: if any listener rejects, async
+     * middleware throws, or the marking store's `write()` rejects, the
+     * subject's stored state is left unchanged (we only write on full
+     * success). If the durable store partially persisted before rejecting,
+     * recovery is the store implementation's responsibility.
      */
     async applyAsync(subject: T, transitionName: string): Promise<Marking> {
         const initialMarking = await this.readMarkingAsync(subject);
@@ -148,16 +147,7 @@ export class Workflow<T> {
 
         try {
             const newMarking = await engine.applyAsync(transitionName);
-            try {
-                await this.writeMarkingAsync(subject, newMarking);
-            } catch (err) {
-                // Marking-store write failed after the engine already mutated
-                // in-memory state. Restore engine state to the pre-apply
-                // snapshot so callers see a consistent view if they reuse
-                // this Workflow instance.
-                engine.setMarking(initialMarking);
-                throw err;
-            }
+            await this.writeMarkingAsync(subject, newMarking);
             return newMarking;
         } finally {
             for (const unsub of unsubscribers) unsub();

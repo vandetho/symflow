@@ -439,17 +439,18 @@ export class WorkflowEngine {
         type: WorkflowEventType,
         promise: Promise<unknown>,
     ): void {
+        // Suppress unhandled-rejection noise from the discarded promise — must
+        // happen BEFORE any throw below. Otherwise, in strict mode a rejecting
+        // async listener produces both the strict-mode error AND an unhandled
+        // rejection (the listener's body still runs in the microtask queue
+        // even though we abort the sync path).
+        promise.catch(() => undefined);
         if (this.strictSyncListeners) {
             throw new Error(
                 `Listener for "${type}" returned a Promise during sync apply(). ` +
                     `Use applyAsync() for async listeners, or remove strictSyncListeners.`,
             );
         }
-        // Suppress unhandled-rejection noise from the discarded promise — the
-        // warning below is the actionable signal. Without this, a rejecting
-        // async listener during sync apply() would crash the process via
-        // unhandledRejection in addition to logging the warning.
-        promise.catch(() => undefined);
         if (!this.warnedListeners.has(listener)) {
             this.warnedListeners.add(listener);
             console.warn(

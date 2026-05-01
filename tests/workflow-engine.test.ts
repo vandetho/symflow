@@ -615,6 +615,65 @@ describe("WorkflowEngine — sync apply() with async listeners", () => {
         process.removeListener("unhandledRejection", onRejection);
         warn.mockRestore();
     });
+
+    it("strict mode also suppresses unhandled-rejection from rejecting listener", async () => {
+        // Without the fix, strict mode throws BEFORE attaching .catch() to the
+        // returned promise — so a rejecting async listener produces both the
+        // strict-mode error and an unhandledRejection.
+        const engine = new WorkflowEngine(orderStateMachine, {
+            strictSyncListeners: true,
+        });
+
+        let unhandled = false;
+        const onRejection = () => {
+            unhandled = true;
+        };
+        process.once("unhandledRejection", onRejection);
+
+        engine.on("entered", async () => {
+            throw new Error("strict + rejecting");
+        });
+
+        expect(() => engine.apply("submit")).toThrow(/returned a Promise during sync apply/);
+        await new Promise((r) => setImmediate(r));
+
+        expect(unhandled).toBe(false);
+        process.removeListener("unhandledRejection", onRejection);
+    });
+
+    it("filtered async listener trips the warning when the filter matches", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const engine = new WorkflowEngine(orderStateMachine);
+        engine.on("entered", { transition: "submit" }, async () => {});
+
+        engine.apply("submit");
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toContain("returned a Promise during sync apply()");
+        warn.mockRestore();
+    });
+
+    it("filtered async listener does NOT warn when the filter doesn't match", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const engine = new WorkflowEngine(orderStateMachine);
+        engine.on("entered", { transition: "approve" }, async () => {});
+
+        // "submit" doesn't match the filter, so the inner listener never
+        // runs and no Promise is returned to the engine's emit().
+        engine.apply("submit");
+
+        expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
+    });
+
+    it("filtered async listener throws under strictSyncListeners when filter matches", () => {
+        const engine = new WorkflowEngine(orderStateMachine, {
+            strictSyncListeners: true,
+        });
+        engine.on("entered", { transition: "submit" }, async () => {});
+
+        expect(() => engine.apply("submit")).toThrow(/returned a Promise during sync apply/);
+    });
 });
 
 describe("WorkflowEngine — weighted arcs", () => {

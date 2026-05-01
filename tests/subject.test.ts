@@ -415,7 +415,7 @@ describe("Workflow<T> — async API", () => {
         expect(enabled.map((t) => t.name).sort()).toEqual(["approve", "reject"]);
     });
 
-    it("restores engine snapshot when async store write fails", async () => {
+    it("leaves subject unchanged when async store write fails", async () => {
         const order: Order = { id: "1", status: "draft", amount: 100 };
         const workflow = createWorkflow<Order>(orderStateMachine, {
             asyncMarkingStore: {
