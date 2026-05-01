@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://github.com/vandetho/symflow/compare/v3.2.0...v3.3.0) (2026-05-01)
+
+
+### Features
+
+* **engine:** allow guard evaluators to return structured reasons ([152cfa8](https://github.com/vandetho/symflow/commit/152cfa8ae0f5fd8414c39ce1fc7224be6ec557a9))
+
 ## [3.2.0](https://github.com/vandetho/symflow/compare/v3.1.0...v3.2.0) (2026-04-27)
 
 
