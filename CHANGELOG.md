@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.1](https://github.com/vandetho/symflow/compare/v3.4.0...v3.4.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* **engine:** announce event carries the newly-reachable transition ([aea3cb4](https://github.com/vandetho/symflow/commit/aea3cb406f49c273a57bd7c0e90125544643e210))
+
 ## [3.4.0](https://github.com/vandetho/symflow/compare/v3.3.1...v3.4.0) (2026-05-01)
 
 
