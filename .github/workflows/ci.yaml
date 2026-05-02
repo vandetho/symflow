@@ -5,6 +5,7 @@ on:
         branches: [main]
     pull_request:
         branches: [main]
+    workflow_call:
 
 jobs:
     build:
@@ -24,22 +25,3 @@ jobs:
             - run: npm run typecheck
             - run: npm test
             - run: npm run build
-
-    release-please:
-        needs: build
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            pull-requests: write
-        steps:
-            - name: Generate token
-              id: token
-              uses: actions/create-github-app-token@v3
-              with:
-                  client-id: ${{ secrets.BOT_CLIENT_ID }}
-                  private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-            - uses: googleapis/release-please-action@v5
-              with:
-                  release-type: node
-                  token: ${{ steps.token.outputs.token }}

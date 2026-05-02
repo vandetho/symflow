@@ -1,0 +1,28 @@
+name: Release Please
+
+on:
+    workflow_dispatch:
+
+jobs:
+    ci:
+        uses: ./.github/workflows/ci.yaml
+        secrets: inherit
+
+    release-please:
+        needs: ci
+        if: github.ref == 'refs/heads/main'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Generate token
+              id: token
+              uses: actions/create-github-app-token@v3
+              with:
+                  client-id: ${{ secrets.BOT_CLIENT_ID }}
+                  private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+            - uses: googleapis/release-please-action@v5
+              with:
+                  release-type: node
+                  token: ${{ steps.token.outputs.token }}
