@@ -130,7 +130,7 @@
         }
     },
     "dependencies": {
-        "js-yaml": "^5.2.0"
+        "js-yaml": "^4.3.0"
     },
     "devDependencies": {
         "@types/js-yaml": "^4.0.9",
@@ -140,7 +140,7 @@
         "@xyflow/react": "^12.10.2",
         "eslint": "^10.2.1",
         "eslint-config-prettier": "^10.1.8",
-        "prettier": "^3.8.3",
+        "prettier": "3.9.4",
         "tsup": "^8.3.5",
         "typescript": "^6.0.3",
         "vitest": "^4.1.4"
