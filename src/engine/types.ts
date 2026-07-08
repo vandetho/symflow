@@ -75,13 +75,7 @@ export interface TransitionResult {
 }
 
 export type WorkflowEventType =
-    | "guard"
-    | "leave"
-    | "transition"
-    | "enter"
-    | "entered"
-    | "completed"
-    | "announce";
+    "guard" | "leave" | "transition" | "enter" | "entered" | "completed" | "announce";
 
 export interface WorkflowEvent {
     type: WorkflowEventType;
