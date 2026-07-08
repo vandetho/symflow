@@ -130,7 +130,7 @@
         }
     },
     "dependencies": {
-        "js-yaml": "^4.3.0"
+        "js-yaml": "^5.2.1"
     },
     "devDependencies": {
         "@types/js-yaml": "^4.0.9",
