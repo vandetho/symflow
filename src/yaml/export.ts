@@ -1,6 +1,15 @@
-import yaml from "js-yaml";
+import { dump, CORE_SCHEMA, nullCoreTag } from "js-yaml";
 import type { WorkflowMeta } from "../types";
 import type { WorkflowDefinition } from "../engine";
+
+/**
+ * Symfony writes empty values as `~` rather than `null`. js-yaml 5 dropped the
+ * v4 `styles: { "!!null": "canonical" }` dump option, so we override how the
+ * core null tag represents itself instead.
+ */
+const nullTildeTag = { ...nullCoreTag, represent: () => "~" };
+
+const EXPORT_SCHEMA = CORE_SCHEMA.withTags(nullTildeTag);
 
 interface ExportOptions {
     definition: WorkflowDefinition;
@@ -69,13 +78,13 @@ export function exportWorkflowYaml({ definition, meta }: ExportOptions): string 
         },
     };
 
-    const raw = yaml.dump(output, {
+    const raw = dump(output, {
+        schema: EXPORT_SCHEMA,
         indent: 4,
         lineWidth: 120,
         noRefs: true,
-        quotingType: "'",
+        quoteStyle: "single",
         forceQuotes: false,
-        styles: { "!!null": "canonical" },
     });
 
     return raw.replace(

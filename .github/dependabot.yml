@@ -7,6 +7,12 @@ updates:
       groups:
           dev-dependencies:
               dependency-type: "development"
+      ignore:
+          # @typescript-eslint v8 peers on `typescript >=4.8.4 <6.1.0`, so a TS 7
+          # major bump breaks `npm ci` with ERESOLVE. Unpin once typescript-eslint
+          # ships a release that supports TypeScript 7.
+          - dependency-name: "typescript"
+            update-types: ["version-update:semver-major"]
     - package-ecosystem: "github-actions"
       directory: "/"
       schedule:
