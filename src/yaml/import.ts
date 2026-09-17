@@ -1,4 +1,4 @@
-import yaml from "js-yaml";
+import { load, defineScalarTag, CORE_SCHEMA } from "js-yaml";
 import type { WorkflowMeta, WorkflowType, MarkingStoreType } from "../types";
 import { DEFAULT_WORKFLOW_META } from "../types";
 import type { WorkflowDefinition, Place, Transition } from "../engine";
@@ -15,26 +15,26 @@ function resolvePhpName(data: string): string {
 }
 
 /**
- * Custom YAML type for Symfony's `!php/const` tags.
+ * Custom YAML tag for Symfony's `!php/const` tags.
  * e.g. `!php/const App\Workflow\State\BlogState::NEW_BLOG` → `"NEW_BLOG"`
  */
-const phpConstType = new yaml.Type("!php/const", {
-    kind: "scalar",
-    resolve: () => true,
-    construct: resolvePhpName,
+const phpConstTag = defineScalarTag("!php/const", {
+    resolve: (source) => resolvePhpName(source),
+    // Load-only: PHP constants are imported as plain strings, never re-emitted.
+    identify: () => false,
 });
 
 /**
- * Custom YAML type for Symfony's `!php/enum` tags (PHP 8.1+ backed enums).
+ * Custom YAML tag for Symfony's `!php/enum` tags (PHP 8.1+ backed enums).
  * e.g. `!php/enum App\Enum\Status::Active` → `"Active"`
  */
-const phpEnumType = new yaml.Type("!php/enum", {
-    kind: "scalar",
-    resolve: () => true,
-    construct: resolvePhpName,
+const phpEnumTag = defineScalarTag("!php/enum", {
+    resolve: (source) => resolvePhpName(source),
+    // Load-only: enum cases are imported as plain strings, never re-emitted.
+    identify: () => false,
 });
 
-const SYMFONY_SCHEMA = yaml.DEFAULT_SCHEMA.extend([phpConstType, phpEnumType]);
+const SYMFONY_SCHEMA = CORE_SCHEMA.withTags(phpConstTag, phpEnumTag);
 
 /**
  * Pre-processes YAML to resolve `!php/const` and `!php/enum` tags used as mapping keys.
@@ -52,7 +52,7 @@ export interface ImportResult {
 
 export function importWorkflowYaml(yamlString: string): ImportResult {
     const preprocessed = preprocessPhpTaggedKeys(yamlString);
-    const parsed = yaml.load(preprocessed, { schema: SYMFONY_SCHEMA }) as Record<string, unknown>;
+    const parsed = load(preprocessed, { schema: SYMFONY_SCHEMA }) as Record<string, unknown>;
 
     let workflowName: string;
     let config: Record<string, unknown>;
