@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.2](https://github.com/vandetho/symflow/compare/v3.5.1...v3.5.2) (2026-09-17)
+
+
+### Bug Fixes
+
+* restore green CI (revert js-yaml to 4.x, pin prettier) ([#65](https://github.com/vandetho/symflow/issues/65)) ([fc70a95](https://github.com/vandetho/symflow/commit/fc70a95133c9de4a37ef73253745ed843ac80107))
+* **yaml:** migrate to js-yaml 5 API and restore green CI ([#69](https://github.com/vandetho/symflow/issues/69)) ([ef60c3d](https://github.com/vandetho/symflow/commit/ef60c3d7f277b77b1502e41b2935e66fe8297077))
+
 ## [3.5.1](https://github.com/vandetho/symflow/compare/v3.5.0...v3.5.1) (2026-05-01)
 
 
