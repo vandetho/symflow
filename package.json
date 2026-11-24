@@ -122,7 +122,7 @@
     },
     "homepage": "https://symflowbuilder.com",
     "peerDependencies": {
-        "@xyflow/react": "^12.10.2"
+        "@xyflow/react": "^13.0.2"
     },
     "peerDependenciesMeta": {
         "@xyflow/react": {
@@ -136,7 +136,7 @@
         "@types/node": "^26.0.1",
         "@typescript-eslint/eslint-plugin": "^8.58.2",
         "@typescript-eslint/parser": "^8.58.2",
-        "@xyflow/react": "^12.10.2",
+        "@xyflow/react": "^13.0.2",
         "eslint": "^10.2.1",
         "eslint-config-prettier": "^10.1.8",
         "prettier": "3.10.1",
